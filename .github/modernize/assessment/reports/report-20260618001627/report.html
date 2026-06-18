@@ -1,0 +1,1599 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Assessment - newbee-mall</title>
+<style>
+:root {
+  --bg-primary: #ffffff;
+  --bg-card: #f8f9fa;
+  --bg-page: #f0f1f3;
+  --text-primary: #24292f;
+  --text-secondary: #57606a;
+  --text-muted: #6b7280;
+  --border-color: #d0d7de;
+  --border-light: #e1e4e8;
+  --link-color: #2563eb;
+  --color-mandatory: #E3008C;
+  --color-potential: #637CEF;
+  --color-optional: #A19F9D;
+  --font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+  --font-mono: 'Cascadia Code', 'Consolas', 'Courier New', monospace;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font-family); font-size: 13px; color: var(--text-primary); background: var(--bg-primary); line-height: 1.5; margin: 0; padding: 0; }
+a { color: var(--link-color); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* ── Page layout ───────────────────────────────────────────── */
+.main { margin: 0; padding: 24px 32px; background: var(--bg-primary); }
+.back-link { color: var(--text-muted); font-size: 13px; margin-bottom: 16px; display: block; }
+h1 { font-weight: 600; font-size: 20px; color: var(--text-primary); margin-bottom: 20px; }
+
+/* ── Report cards (matches VS Code .vscode-report-card) ──── */
+.report-card { background: var(--bg-card); border: 1px solid var(--border-light); border-radius: 4px; padding: 12px; margin-bottom: 20px; }
+.report-card h2 { font-size: 14px; font-weight: 600; margin: 0; color: var(--text-primary); }
+.report-card-body { margin-top: 16px; }
+
+/* ── Component Information (two-column) ────────────────── */
+.app-info-container { display: flex; gap: 8px; flex-wrap: wrap; }
+.app-info-column { flex: 1; min-width: 200px; display: flex; flex-direction: column; gap: 8px; }
+.app-info-row { display: flex; align-items: baseline; }
+.app-info-label { width: 136px; flex-shrink: 0; font-weight: 600; color: var(--text-primary); }
+.app-info-value { flex: 1; color: var(--text-primary); }
+
+/* ── Issue Summary (pie charts + legend) ─────────────────── */
+.cards-container { display: flex; align-items: stretch; gap: 20px; flex-wrap: wrap; }
+.issue-summary-card { flex: 2; }
+.domain-summary-container { display: flex; flex-wrap: wrap; gap: 20px; justify-content: space-around; }
+.domain-summary-item { flex: 1; min-width: 120px; text-align: center; padding: 0 16px; border-right: 1px solid var(--border-light); }
+.domain-summary-item:last-child { border-right: none; }
+.domain-summary-item h3 { font-size: 13px; font-weight: 600; color: var(--text-primary); margin-top: 8px; }
+.domain-summary-item .count { font-size: 12px; color: var(--text-secondary); }
+.criticality-legend { display: flex; flex-wrap: wrap; gap: 15px; padding-top: 12px; justify-content: center; }
+.criticality-legend .legend-item { display: flex; align-items: center; gap: 4px; font-size: 12px; color: var(--text-secondary); }
+.legend-swatch { display: inline-block; width: 1em; height: 1em; border-radius: 2px; }
+
+/* ── Issue list tables ───────────────────────────────────── */
+.issue-section { margin-top: 20px; }
+.issue-section h2 { font-size: 14px; font-weight: 600; margin-bottom: 8px; }
+.issue-table { width: 100%; border-collapse: collapse; table-layout: fixed; min-width: 600px; }
+.issue-table th { text-align: left; text-transform: uppercase; font-weight: 600; font-size: calc(13px * 0.875); padding: 6px 8px; background: var(--bg-card); border-bottom: 1px solid var(--border-color); color: var(--text-secondary); position: sticky; top: 0; z-index: 1; }
+.issue-table td { padding: 12px 8px; border-bottom: 1px solid var(--border-light); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: middle; }
+.col-issue { width: 55%; }
+.col-criticality { width: 25%; }
+.col-storypoint { width: 20%; }
+
+/* ── Target dropdown ─────────────────────────────────────── */
+.target-select-container { margin: 4px 0 16px 0; display: flex; align-items: center; gap: 8px; }
+.target-select-container label { font-weight: 600; color: var(--text-primary); font-size: 14px; }
+.target-select-container select { font-family: var(--font-family); font-size: 13px; padding: 4px 8px; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-primary); color: var(--text-primary); cursor: pointer; }
+
+/* ── Filter bar ──────────────────────────────────────────── */
+.filter-bar { display: flex; flex-wrap: wrap; gap: 16px; margin: 16px 0 8px 0; align-items: center; }
+.multi-select { position: relative; display: inline-block; min-width: 140px; }
+.multi-select-btn { font-family: var(--font-family); font-size: 13px; padding: 4px 24px 4px 8px; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-primary); color: var(--text-primary); cursor: pointer; width: 100%; text-align: left; position: relative; white-space: nowrap; }
+.multi-select-btn::after { content: '\25BE'; position: absolute; right: 8px; top: 50%; transform: translateY(-50%); font-size: 11px; color: var(--text-secondary); }
+.multi-select-dropdown { display: none; position: absolute; top: 100%; left: 0; min-width: 100%; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); z-index: 100; margin-top: 2px; }
+.multi-select.open .multi-select-dropdown { display: block; }
+.multi-select-option { display: flex; align-items: center; gap: 6px; padding: 5px 10px; cursor: pointer; font-size: 13px; white-space: nowrap; }
+.multi-select-option:hover { background: var(--bg-secondary); }
+.multi-select-option input[type=checkbox] { margin: 0; cursor: pointer; }
+.clear-filters { font-size: 12px; color: var(--link-color); cursor: pointer; margin-left: 4px; }
+
+/* ── Criticality labels (colored square + text) ──────────── */
+.crit-label { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; white-space: nowrap; }
+.crit-square { display: inline-block; width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+.crit-square-mandatory { background: var(--color-mandatory); }
+.crit-square-potential { background: var(--color-potential); }
+.crit-square-optional { background: var(--color-optional); }
+
+/* ── Expandable rows ─────────────────────────────────────── */
+.expand-btn { background: none; border: none; cursor: pointer; width: 20px; height: 20px; display: inline-flex; align-items: center; justify-content: center; color: var(--text-muted); font-size: 11px; transition: transform 0.15s; padding: 0; vertical-align: middle; flex-shrink: 0; }
+.expand-btn.open { transform: rotate(90deg); }
+.issue-title-cell { display: flex; align-items: center; gap: 4px; }
+.detail-row td { padding: 0; border-bottom: 1px solid var(--border-light); white-space: normal; overflow: visible; text-overflow: clip; }
+.detail-content { display: flex; gap: 0; padding: 8px 8px 8px 32px; min-width: 0; }
+.file-list { flex: 0 0 50%; min-width: 0; overflow: hidden; }
+.file-list table { width: 100%; border-collapse: collapse; }
+.file-list th { font-size: calc(13px * 0.875); text-transform: uppercase; font-weight: 600; color: var(--text-secondary); padding: 6px 8px; border-bottom: 1px solid var(--border-color); text-align: left; height: 32px; }
+.file-list td { font-size: 13px; padding: 6px 8px; border-bottom: 1px solid var(--border-light); color: var(--text-primary); }
+.file-list .file-path { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 300px; display: block; }
+.file-list .position { font-family: var(--font-mono); font-size: 12px; color: var(--text-secondary); }
+.explanation-panel { flex: 1; padding-left: 16px; min-width: 0; overflow-wrap: break-word; word-wrap: break-word; }
+.explanation-panel h4 { font-size: calc(13px * 0.875); text-transform: uppercase; font-weight: 600; color: var(--text-secondary); padding: 6px 0; border-bottom: 1px solid var(--border-color); height: 32px; margin: 0; }
+.explanation-panel p { font-size: 13px; padding: 8px 0; color: var(--text-primary); line-height: 1.6; white-space: normal; word-break: break-word; }
+
+/* ── Experimental badge ──────────────────────────────────── */
+.badge-experimental { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; background: #fef9c3; color: #854d0e; vertical-align: middle; margin-left: 8px; cursor: default; }
+
+/* ── Footer ──────────────────────────────────────────────── */
+.footer { text-align: center; margin-top: 24px; color: var(--text-muted); font-size: 13px; }
+
+/* ── Responsive ──────────────────────────────────────────── */
+@media (max-width: 800px) {
+  .main { padding: 16px; }
+  .app-info-container { flex-direction: column; }
+  .domain-summary-container { flex-direction: column; }
+  .domain-summary-item { border-right: none; border-bottom: 1px solid var(--border-light); padding-bottom: 12px; }
+  .detail-content { flex-direction: column; }
+  .file-list { flex: none; width: 100%; }
+  .explanation-panel { padding-left: 0; padding-top: 8px; }
+}
+/* ── Tab navigation ──────────────────────────────────────── */
+.tab-nav { display: flex; gap: 0; border-bottom: 1px solid var(--border-color); margin-bottom: 28px; flex-wrap: wrap; }
+.tab-btn { background: none; border: none; border-bottom: 2px solid transparent; padding: 10px 18px; font-size: 13px; font-family: var(--font-family); color: var(--text-secondary); cursor: pointer; margin-bottom: -1px; white-space: nowrap; position: relative; }
+.tab-btn:hover { color: var(--text-primary); }
+.tab-btn.active { color: var(--link-color); border-bottom-color: var(--link-color); font-weight: 600; }
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+/* ── Tooltip on tab ──────────────────────────────────────── */
+.tab-btn[data-tooltip]::after { content: attr(data-tooltip); position: absolute; bottom: calc(100% + 8px); left: 50%; transform: translateX(-50%); background: #24292f; color: #ffffff; font-size: 12px; font-weight: 400; padding: 6px 10px; border-radius: 4px; white-space: normal; width: max-content; max-width: 260px; text-align: center; pointer-events: none; opacity: 0; transition: opacity 0.15s; z-index: 100; }
+.tab-btn[data-tooltip]:hover::after { opacity: 1; }
+
+/* ── Fact content — prose column ─────────────────────────── */
+.fact-content { max-width: 860px; margin: 0 auto; line-height: 1.75; color: var(--text-primary); font-size: 14px; }
+.fact-content h1 { font-size: 22px; font-weight: 700; margin: 0 0 6px 0; color: var(--text-primary); letter-spacing: -0.01em; }
+.fact-content h1 + p { margin-top: 6px; color: var(--text-secondary); font-size: 14px; margin-bottom: 24px; }
+.fact-content h2 { font-size: 17px; font-weight: 700; margin: 36px 0 12px 0; padding-bottom: 6px; border-bottom: 1px solid var(--border-color); color: var(--text-primary); letter-spacing: -0.01em; }
+.fact-content h3 { font-size: 14px; font-weight: 700; margin: 24px 0 8px 0; color: var(--text-primary); text-transform: uppercase; letter-spacing: 0.04em; font-size: 12px; color: var(--text-secondary); }
+.fact-content p { margin: 10px 0; color: var(--text-primary); }
+.fact-content ul, .fact-content ol { margin: 10px 0 10px 22px; }
+.fact-content li { margin: 5px 0; }
+.fact-content a { color: var(--link-color); }
+.fact-content a:hover { text-decoration: underline; }
+
+/* ── Fact tables ─────────────────────────────────────────── */
+.table-wrap { overflow-x: auto; margin: 16px 0; }
+.fact-content table { border-collapse: collapse; width: 100%; margin: 16px 0; font-size: 13px; border-radius: 6px; overflow: hidden; border: 1px solid var(--border-color); }
+.fact-content thead { background: var(--bg-card); }
+.fact-content th { text-align: left; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; padding: 8px 14px; border-bottom: 1px solid var(--border-color); color: var(--text-secondary); }
+.fact-content td { padding: 9px 14px; border-bottom: 1px solid var(--border-light); vertical-align: top; color: var(--text-primary); }
+.fact-content tr:last-child td { border-bottom: none; }
+.fact-content tbody tr:hover { background: #f6f8fa; }
+
+/* ── Fact code ───────────────────────────────────────────── */
+.fact-content code { font-family: var(--font-mono); font-size: 12px; background: #f0f1f3; padding: 2px 6px; border-radius: 4px; color: #c7254e; }
+.fact-content pre { background: #f6f8fa; border: 1px solid var(--border-light); border-radius: 6px; padding: 14px 16px; overflow-x: auto; margin: 14px 0; }
+.fact-content pre code { background: none; color: var(--text-primary); padding: 0; border-radius: 0; }
+.fact-content hr { border: none; border-top: 1px solid var(--border-light); margin: 28px 0; }
+.fact-content strong { font-weight: 600; }
+.fact-content em { font-style: italic; }
+.fact-content blockquote { border-left: 3px solid var(--border-color); margin: 12px 0; padding: 4px 16px; color: var(--text-secondary); }
+.fact-unavailable { padding: 32px 0; }
+.fact-unavailable h3 { font-size: 16px; font-weight: 600; color: var(--text-primary); text-transform: none; letter-spacing: 0; margin: 0 0 12px 0; }
+.fact-unavailable p { margin: 0 0 8px 0; color: var(--text-secondary); }
+.fact-unavailable ol, .fact-unavailable ul { margin: 0 0 0 22px; color: var(--text-primary); }
+.fact-unavailable li { margin: 6px 0; }
+
+/* ── Mermaid diagram card ─────────────────────────────────── */
+.mermaid { background: var(--bg-card); border: 1px solid var(--border-light); border-radius: 8px; padding: 24px 16px; margin: 20px 0; overflow-x: auto; text-align: center; cursor: pointer; position: relative; }
+.mermaid:hover { border-color: var(--border-color); }
+.mermaid svg { max-width: 100%; height: auto !important; display: inline-block; }
+.mermaid-zoom-hint { position: absolute; top: 8px; right: 10px; font-size: 11px; color: var(--text-muted); opacity: 0; transition: opacity 0.15s; pointer-events: none; }
+.mermaid:hover .mermaid-zoom-hint { opacity: 1; }
+
+/* ── Diagram lightbox ────────────────────────────────────── */
+.diagram-lightbox { display: none; position: fixed; inset: 0; z-index: 1000; background: rgba(0,0,0,0.7); backdrop-filter: blur(2px); align-items: center; justify-content: center; cursor: zoom-out; padding: 48px 32px; }
+.diagram-lightbox.open { display: flex; }
+.diagram-lightbox-inner { background: #ffffff; border-radius: 10px; padding: 32px; width: 88vw; max-height: 88vh; overflow: hidden; cursor: default; box-shadow: 0 24px 64px rgba(0,0,0,0.35); display: flex; align-items: center; justify-content: center; }
+.diagram-lightbox-inner svg { width: 100% !important; height: auto !important; max-height: 76vh; display: block; }
+.diagram-lightbox-close { position: fixed; top: 20px; right: 24px; background: #ffffff; border: none; border-radius: 50%; width: 36px; height: 36px; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--text-primary); box-shadow: 0 2px 8px rgba(0,0,0,0.2); z-index: 1001; }
+.diagram-lightbox-close:hover { background: var(--bg-card); }
+.diagram-lightbox-hint { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.55); color: #ffffff; font-size: 12px; padding: 6px 14px; border-radius: 20px; pointer-events: none; white-space: nowrap; z-index: 1001; }
+</style>
+<script>
+window.__mermaidPending = [];
+window.__mermaidReady = false;
+window.__renderMermaidIn = function(container) {
+  if (container) { window.__mermaidPending.push(container); }
+};
+</script>
+<script type="module">
+import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+mermaid.initialize({ startOnLoad: false, theme: 'default', flowchart: { useMaxWidth: true }, sequence: { useMaxWidth: true } });
+
+window.__renderMermaidIn = function(container) {
+  var nodes = container ? container.querySelectorAll('.mermaid:not([data-processed])') : [];
+  if (nodes.length > 0) {
+    mermaid.run({ nodes: Array.from(nodes) }).then(function() {
+      nodes.forEach(function(node) {
+        if (!node.querySelector('.mermaid-zoom-hint')) {
+          var hint = document.createElement('span');
+          hint.className = 'mermaid-zoom-hint';
+          hint.textContent = 'Click to expand';
+          node.appendChild(hint);
+        }
+      });
+    });
+  }
+};
+
+var drained = new Set();
+(window.__mermaidPending || []).forEach(function(c) {
+  if (!drained.has(c)) { drained.add(c); window.__renderMermaidIn(c); }
+});
+window.__mermaidPending = [];
+window.__mermaidReady = true;
+
+function renderActivePanels() {
+  document.querySelectorAll('.tab-panel.active').forEach(function(p) {
+    if (!drained.has(p)) { drained.add(p); window.__renderMermaidIn(p); }
+  });
+}
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', renderActivePanels);
+} else {
+  renderActivePanels();
+}
+</script>
+</head><body>
+<div id="diagram-lightbox" class="diagram-lightbox" role="dialog" aria-modal="true">
+  <button class="diagram-lightbox-close" id="diagram-lightbox-close" aria-label="Close">&#x2715;</button>
+  <div class="diagram-lightbox-hint">Scroll to zoom &nbsp;&middot;&nbsp; Drag to pan &nbsp;&middot;&nbsp; Double-click to reset</div>
+  <div class="diagram-lightbox-inner" id="diagram-lightbox-inner"></div>
+</div>
+<div class="main">
+<h1>newbee-mall</h1>
+<div class="report-card">
+  <h2>Component Information</h2>
+  <div class="report-card-body">
+    <div class="app-info-container">
+      <div class="app-info-column">
+        <div class="app-info-row"><span class="app-info-label">Component Name</span><span class="app-info-value">newbee-mall</span></div>
+        <div class="app-info-row"><span class="app-info-label">Java Version</span><span class="app-info-value">1.8</span></div>
+        <div class="app-info-row"><span class="app-info-label">Effort</span><span class="app-info-value" id="effort-display">L (total story points: 54)</span></div>
+      </div>
+      <div class="app-info-column">
+        <div class="app-info-row"><span class="app-info-label">Build Tools</span><span class="app-info-value">Maven</span></div>
+        <div class="app-info-row"><span class="app-info-label">Frameworks</span><span class="app-info-value">Spring Boot, Spring</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+<nav class="tab-nav">
+  <button class="tab-btn active" data-tab="tab-issues" data-tooltip="Issues detected in the source code">Issues</button>
+  <button class="tab-btn" data-tab="tab-arch" data-tooltip="How the app&#x27;s layers connect — from UI to data.">Architecture</button>
+  <button class="tab-btn" data-tab="tab-api" data-tooltip="Endpoints exposed by this app and how services communicate.">API Contracts</button>
+  <button class="tab-btn" data-tab="tab-config" data-tooltip="Environment settings, runtime profiles, and deployment manifests.">Configuration</button>
+  <button class="tab-btn" data-tab="tab-workflows" data-tooltip="Domain entities and the core flows users move through.">Business Workflows</button>
+  <button class="tab-btn" data-tab="tab-deps" data-tooltip="Libraries and frameworks this app depends on, grouped by category.">Dependencies</button>
+  <button class="tab-btn" data-tab="tab-data" data-tooltip="Database schema, entity relationships, and persistence behavior.">Data Model</button>
+</nav>
+<div id="tab-issues" class="tab-panel active">
+<div class="target-select-container">
+  <label for="target-select">Target Compute Service:</label>
+  <select id="target-select" onchange="onTargetChange(this.value)">
+    <option value="azure-aks">Azure Kubernetes Service</option>
+  </select>
+</div>
+<div class="report-card">
+  <h2>Issue Summary</h2>
+  <div class="report-card-body">
+    <div class="domain-summary-container" id="donut-container">
+      <div class="domain-summary-item">
+<svg viewBox="0 0 100 100" width="100" height="100" style="display:block;margin:0 auto;transform:rotate(-90deg);">
+  <circle cx="50" cy="50" r="35" fill="none" stroke="var(--color-mandatory)" stroke-width="15" stroke-dasharray="126.78 219.91" stroke-dashoffset="-0.00"/>
+  <circle cx="50" cy="50" r="35" fill="none" stroke="var(--color-potential)" stroke-width="15" stroke-dasharray="90.13 219.91" stroke-dashoffset="-128.28"/>
+</svg>
+
+        <h3>Cloud Readiness</h3>
+        <div class="count">12 issues</div>
+      </div>
+      <div class="domain-summary-item">
+<svg viewBox="0 0 100 100" width="100" height="100" style="display:block;margin:0 auto;transform:rotate(-90deg);">
+  <circle cx="50" cy="50" r="35" fill="none" stroke="var(--color-mandatory)" stroke-width="15" stroke-dasharray="219.91 219.91" stroke-dashoffset="-0.00"/>
+</svg>
+
+        <h3>Java Upgrade</h3>
+        <div class="count">2 issues</div>
+      </div>
+    </div>
+    <div class="criticality-legend">
+      <div class="legend-item"><span class="legend-swatch" style="background:var(--color-mandatory)"></span>Mandatory</div>
+      <div class="legend-item"><span class="legend-swatch" style="background:var(--color-potential)"></span>Potential</div>
+      <div class="legend-item"><span class="legend-swatch" style="background:var(--color-optional)"></span>Optional</div>
+    </div>
+  </div>
+</div>
+<div class="filter-bar" id="filter-bar">
+  <div class="multi-select" id="domain-ms">
+    <button class="multi-select-btn" onclick="toggleMultiSelect('domain-ms')">Domain</button>
+    <div class="multi-select-dropdown">
+      <label class="multi-select-option"><input type="checkbox" value="cloud-readiness" onchange="onMultiSelectChange('domain-ms','Domain')"/> Cloud Readiness</label>
+      <label class="multi-select-option"><input type="checkbox" value="java-upgrade" onchange="onMultiSelectChange('domain-ms','Domain')"/> Java Upgrade</label>
+    </div>
+  </div>
+  <div class="multi-select" id="criticality-ms">
+    <button class="multi-select-btn" onclick="toggleMultiSelect('criticality-ms')">Criticality</button>
+    <div class="multi-select-dropdown">
+      <label class="multi-select-option"><input type="checkbox" value="mandatory" onchange="onMultiSelectChange('criticality-ms','Criticality')"/> Mandatory</label>
+      <label class="multi-select-option"><input type="checkbox" value="potential" onchange="onMultiSelectChange('criticality-ms','Criticality')"/> Potential</label>
+    </div>
+  </div>
+  <a class="clear-filters" href="javascript:void(0)" onclick="clearAllFilters()">Clear all</a>
+</div>
+<div class="issue-section" data-domain="cloud-readiness">
+  <h2>Cloud Readiness</h2>
+  <table class="issue-table">
+    <colgroup><col class="col-issue"/><col class="col-criticality"/><col class="col-storypoint"/></colgroup>
+    <thead><tr><th>Issue Category</th><th>Criticality</th><th>Story Point</th></tr></thead>
+    <tbody>
+    <tr class="issue-row" data-criticality="mandatory" data-targets='{&quot;azure-aks&quot;:{&quot;effort&quot;:3,&quot;severity&quot;:&quot;mandatory&quot;},&quot;azure-appservice&quot;:{&quot;effort&quot;:3,&quot;severity&quot;:&quot;mandatory&quot;},&quot;azure-container-apps&quot;:{&quot;effort&quot;:3,&quot;severity&quot;:&quot;mandatory&quot;}}' data-default-effort="3" data-default-severity="mandatory" data-rule="local-storage-00002" onclick="toggleRow('row-cloudreadiness-0', this)" style="cursor:pointer;">
+      <td style="white-space:normal;"><div class="issue-title-cell"><button class="expand-btn" id="btn-row-cloudreadiness-0">&#x276F;</button> File system - java.net.URL/URI</div></td>
+      <td class="crit-cell"><span class="crit-label"><span class="crit-square crit-square-mandatory"></span>Mandatory</span></td>
+      <td class="sp-cell">3</td>
+    </tr>
+    <tr class="detail-row" id="row-cloudreadiness-0" style="display:none;">
+      <td colspan="3">
+        <div class="detail-content">
+          <div class="file-list">
+            <table><colgroup><col style="width:70%"/><col style="width:30%"/></colgroup>
+            <thead><tr><th>File</th><th>Position</th></tr></thead><tbody>
+            <tr><td><span class="file-path" title="src/main/java/ltd/newbee/mall/controller/common/UploadController.java">src/main/java/ltd/newbee/mall/controller/common/UploadController.java</span></td><td><span class="position">Line 75</span></td></tr>
+            <tr><td><span class="file-path" title="src/main/java/ltd/newbee/mall/controller/common/UploadController.java">src/main/java/ltd/newbee/mall/controller/common/UploadController.java</span></td><td><span class="position">Line 130</span></td></tr>
+            <tr><td><span class="file-path" title="src/main/java/ltd/newbee/mall/util/NewBeeMallUtils.java">src/main/java/ltd/newbee/mall/util/NewBeeMallUtils.java</span></td><td><span class="position">Line 15</span></td></tr>
+            </tbody></table>
+          </div>
+          <div class="explanation-panel">
+            <h4>Explanation</h4>
+            <div><p>When migrating an application that relies on the file system to Azure, it&#x27;s important to consider the limitations of local storage in a cloud environment.<br/> An application running inside a container could lose access to a file in local storage.</p><p> The following recommendations depend on the function of the file in local storage:</p><p> * Determine the storage needs for your application: Ephemeral storage or persistent storage. Ephemeral storage only persists until the cloud environment is restarted. Persistent storage is required for data that needs to persist across restarts.</p><p> * If persistent storage is needed, consider using Azure File Share or Azure Blob Storage. Mount Azure file share allows your application to access files via the mount location. Azure blob storage is a scalable object store for data objects, such as text or binary files.</p><p> * <strong>Logging</strong>: Log to standard output and use Azure Monitor to collect and analyze the logs.</p><p> * <strong>Caching</strong>: Use Azure Cache for Redis as a cache backing service.</p><p> * <strong>Configuration</strong>: Store configuration in Azure App Configuration instead of using the file system. Also store configuration settings in environment variables so that they can be updated without code changes.</p></div>
+          </div>
+        </div>
+      </td>
+    </tr>
+    <tr class="issue-row" data-criticality="mandatory" data-targets='{&quot;azure-aks&quot;:{&quot;effort&quot;:5,&quot;severity&quot;:&quot;mandatory&quot;},&quot;azure-appservice&quot;:{&quot;effort&quot;:5,&quot;severity&quot;:&quot;mandatory&quot;},&quot;azure-container-apps&quot;:{&quot;effort&quot;:5,&quot;severity&quot;:&quot;mandatory&quot;}}' data-default-effort="5" data-default-severity="mandatory" data-rule="cra-weak-crypto-md5-01000" onclick="toggleRow('row-cloudreadiness-1', this)" style="cursor:pointer;">
+      <td style="white-space:normal;"><div class="issue-title-cell"><button class="expand-btn" id="btn-row-cloudreadiness-1">&#x276F;</button> CRA: Use of weak hash algorithm MD5</div></td>
+      <td class="crit-cell"><span class="crit-label"><span class="crit-square crit-square-mandatory"></span>Mandatory</span></td>
+      <td class="sp-cell">5</td>
+    </tr>
+    <tr class="detail-row" id="row-cloudreadiness-1" style="display:none;">
+      <td colspan="3">
+        <div class="detail-content">
+          <div class="file-list">
+            <table><colgroup><col style="width:70%"/><col style="width:30%"/></colgroup>
+            <thead><tr><th>File</th><th>Position</th></tr></thead><tbody>
+            <tr><td><span class="file-path" title="src/main/java/ltd/newbee/mall/util/SystemUtil.java">src/main/java/ltd/newbee/mall/util/SystemUtil.java</span></td><td><span class="position">Line 29</span></td></tr>
+            <tr><td><span class="file-path" title="src/main/java/ltd/newbee/mall/util/MD5Util.java">src/main/java/ltd/newbee/mall/util/MD5Util.java</span></td><td><span class="position">Line 34</span></td></tr>
+            </tbody></table>
+          </div>
+          <div class="explanation-panel">
+            <h4>Explanation</h4>
+            <div><p><strong>EU Cyber Resilience Act (Annex I, Part I, Section 2(c))</strong> requires that products protect the confidentiality and integrity of data using encryption and hashing mechanisms that reflect the <strong>state of the art</strong>.</p><p><strong>MD5</strong> is a cryptographically broken hash algorithm. It is vulnerable to collision attacks and must not be used for:</p><ul><li>Password hashing</li><li>Digital signatures</li><li>Data integrity verification</li><li>Certificate validation</li></ul><p><strong>Recommended actions:</strong></p><ul><li>Replace <code>MessageDigest.getInstance(&quot;MD5&quot;)</code> with <code>MessageDigest.getInstance(&quot;SHA-256&quot;)</code> or <code>MessageDigest.getInstance(&quot;SHA-3-256&quot;)</code> for general hashing.</li><li>For password hashing, use <strong>bcrypt</strong>, <strong>scrypt</strong>, <strong>Argon2</strong>, or <strong>PBKDF2</strong> instead.</li><li>For HMAC operations, use <code>HmacSHA256</code> or <code>HmacSHA3-256</code>.</li></ul></div>
+          </div>
+        </div>
+      </td>
+    </tr>
+    <tr class="issue-row" data-criticality="mandatory" data-targets='{&quot;azure-aks&quot;:{&quot;effort&quot;:5,&quot;severity&quot;:&quot;mandatory&quot;},&quot;azure-appservice&quot;:{&quot;effort&quot;:5,&quot;severity&quot;:&quot;mandatory&quot;},&quot;azure-container-apps&quot;:{&quot;effort&quot;:5,&quot;severity&quot;:&quot;mandatory&quot;}}' data-default-effort="5" data-default-severity="mandatory" data-rule="cra-insecure-random-01000" onclick="toggleRow('row-cloudreadiness-2', this)" style="cursor:pointer;">
+      <td style="white-space:normal;"><div class="issue-title-cell"><button class="expand-btn" id="btn-row-cloudreadiness-2">&#x276F;</button> CRA: Use of insecure random number generator java.util.Random</div></td>
+      <td class="crit-cell"><span class="crit-label"><span class="crit-square crit-square-mandatory"></span>Mandatory</span></td>
+      <td class="sp-cell">5</td>
+    </tr>
+    <tr class="detail-row" id="row-cloudreadiness-2" style="display:none;">
+      <td colspan="3">
+        <div class="detail-content">
+          <div class="file-list">
+            <table><colgroup><col style="width:70%"/><col style="width:30%"/></colgroup>
+            <thead><tr><th>File</th><th>Position</th></tr></thead><tbody>
+            <tr><td><span class="file-path" title="src/main/java/ltd/newbee/mall/controller/common/UploadController.java">src/main/java/ltd/newbee/mall/controller/common/UploadController.java</span></td><td><span class="position">Line 60</span></td></tr>
+            <tr><td><span class="file-path" title="src/main/java/ltd/newbee/mall/controller/common/UploadController.java">src/main/java/ltd/newbee/mall/controller/common/UploadController.java</span></td><td><span class="position">Line 116</span></td></tr>
+            </tbody></table>
+          </div>
+          <div class="explanation-panel">
+            <h4>Explanation</h4>
+            <div><p><strong>EU Cyber Resilience Act (Annex I, Part I, Section 2(c))</strong> requires the use of <strong>state of the art</strong> cryptographic mechanisms, which includes the use of cryptographically secure random number generators (CSPRNG).</p><p><code>java.util.Random</code> uses a linear congruential generator (LCG) which is <strong>not cryptographically secure</strong>. Its output is predictable given enough observations, making it unsuitable for:</p><ul><li>Token/session ID generation</li><li>Nonce/IV generation for encryption</li><li>Salt generation for password hashing</li><li>Any security-sensitive random value generation</li></ul><p><strong>Recommended actions:</strong></p><ul><li>Replace <code>new Random()</code> with <code>new SecureRandom()</code> for any security-relevant random number generation.</li><li>Replace <code>Math.random()</code> with <code>SecureRandom.nextDouble()</code> for security use cases.</li><li>Replace <code>ThreadLocalRandom.current()</code> with <code>SecureRandom</code> for security contexts.</li><li>Use <code>java.security.SecureRandom</code> which provides a CSPRNG backed by the OS entropy source.</li></ul></div>
+          </div>
+        </div>
+      </td>
+    </tr>
+    <tr class="issue-row" data-criticality="mandatory" data-targets='{&quot;azure-aks&quot;:{&quot;effort&quot;:5,&quot;severity&quot;:&quot;mandatory&quot;},&quot;azure-appservice&quot;:{&quot;effort&quot;:5,&quot;severity&quot;:&quot;mandatory&quot;},&quot;azure-container-apps&quot;:{&quot;effort&quot;:5,&quot;severity&quot;:&quot;mandatory&quot;}}' data-default-effort="5" data-default-severity="mandatory" data-rule="localhost-jdbc-00002" onclick="toggleRow('row-cloudreadiness-3', this)" style="cursor:pointer;">
+      <td style="white-space:normal;"><div class="issue-title-cell"><button class="expand-btn" id="btn-row-cloudreadiness-3">&#x276F;</button> Local JDBC Calls</div></td>
+      <td class="crit-cell"><span class="crit-label"><span class="crit-square crit-square-mandatory"></span>Mandatory</span></td>
+      <td class="sp-cell">5</td>
+    </tr>
+    <tr class="detail-row" id="row-cloudreadiness-3" style="display:none;">
+      <td colspan="3">
+        <div class="detail-content">
+          <div class="file-list">
+            <table><colgroup><col style="width:70%"/><col style="width:30%"/></colgroup>
+            <thead><tr><th>File</th><th>Position</th></tr></thead><tbody>
+            <tr><td><span class="file-path" title="src/main/resources/application.properties">src/main/resources/application.properties</span></td><td><span class="position">Line 10</span></td></tr>
+            </tbody></table>
+          </div>
+          <div class="explanation-panel">
+            <h4>Explanation</h4>
+            <div><p>The app is trying to access local resource by JDBC, please try to migrate the resource to cloud</p></div>
+          </div>
+        </div>
+      </td>
+    </tr>
+    <tr class="issue-row" data-criticality="mandatory" data-targets='{&quot;azure-aks&quot;:{&quot;effort&quot;:3,&quot;severity&quot;:&quot;mandatory&quot;},&quot;azure-container-apps&quot;:{&quot;effort&quot;:3,&quot;severity&quot;:&quot;mandatory&quot;}}' data-default-effort="3" data-default-severity="mandatory" data-rule="dockerfile-00000" onclick="toggleRow('row-cloudreadiness-4', this)" style="cursor:pointer;">
+      <td style="white-space:normal;"><div class="issue-title-cell"><button class="expand-btn" id="btn-row-cloudreadiness-4">&#x276F;</button> No Dockerfile found</div></td>
+      <td class="crit-cell"><span class="crit-label"><span class="crit-square crit-square-mandatory"></span>Mandatory</span></td>
+      <td class="sp-cell">3</td>
+    </tr>
+    <tr class="detail-row" id="row-cloudreadiness-4" style="display:none;">
+      <td colspan="3">
+        <div class="detail-content">
+          <div class="file-list">
+            <table><colgroup><col style="width:70%"/><col style="width:30%"/></colgroup>
+            <thead><tr><th>File</th><th>Position</th></tr></thead><tbody>
+            </tbody></table>
+          </div>
+          <div class="explanation-panel">
+            <h4>Explanation</h4>
+            <div><p>No Dockerfile was found in the project. This suggests the application may not yet be containerized. <br/>Consider creating a Dockerfile to enable container-based replatforming to Azure services such as Azure Container Apps or AKS.</p></div>
+          </div>
+        </div>
+      </td>
+    </tr>
+    <tr class="issue-row" data-criticality="mandatory" data-targets='{&quot;azure-aks&quot;:{&quot;effort&quot;:3,&quot;severity&quot;:&quot;mandatory&quot;},&quot;azure-appservice&quot;:{&quot;effort&quot;:3,&quot;severity&quot;:&quot;mandatory&quot;},&quot;azure-container-apps&quot;:{&quot;effort&quot;:3,&quot;severity&quot;:&quot;mandatory&quot;}}' data-default-effort="3" data-default-severity="mandatory" data-rule="cra-hardcoded-credential-default-pwd-04000" onclick="toggleRow('row-cloudreadiness-5', this)" style="cursor:pointer;">
+      <td style="white-space:normal;"><div class="issue-title-cell"><button class="expand-btn" id="btn-row-cloudreadiness-5">&#x276F;</button> CRA: Default or well-known password detected</div></td>
+      <td class="crit-cell"><span class="crit-label"><span class="crit-square crit-square-mandatory"></span>Mandatory</span></td>
+      <td class="sp-cell">3</td>
+    </tr>
+    <tr class="detail-row" id="row-cloudreadiness-5" style="display:none;">
+      <td colspan="3">
+        <div class="detail-content">
+          <div class="file-list">
+            <table><colgroup><col style="width:70%"/><col style="width:30%"/></colgroup>
+            <thead><tr><th>File</th><th>Position</th></tr></thead><tbody>
+            <tr><td><span class="file-path" title="src/main/resources/application.properties">src/main/resources/application.properties</span></td><td><span class="position">Line 12</span></td></tr>
+            </tbody></table>
+          </div>
+          <div class="explanation-panel">
+            <h4>Explanation</h4>
+            <div><p><strong>EU Cyber Resilience Act (Annex I, Part I, Section 2(b))</strong> requires a <strong>secure by default configuration</strong>. The use of default, well-known, or trivial passwords violates the secure-by-default principle.</p><p>ETSI EN 303 645 (referenced standard for CRA compliance) explicitly prohibits universal default passwords in Provision 5.1-1.</p><p><strong>Recommended actions:</strong></p><ul><li>Remove all default/well-known passwords from code and configuration.</li><li>Require unique, strong passwords during initial setup.</li><li>Use generated secrets that are unique per deployment.</li><li>Implement password complexity requirements.</li></ul></div>
+          </div>
+        </div>
+      </td>
+    </tr>
+    <tr class="issue-row" data-criticality="mandatory" data-targets='{&quot;azure-aks&quot;:{&quot;effort&quot;:3,&quot;severity&quot;:&quot;mandatory&quot;},&quot;azure-appservice&quot;:{&quot;effort&quot;:3,&quot;severity&quot;:&quot;mandatory&quot;},&quot;azure-container-apps&quot;:{&quot;effort&quot;:3,&quot;severity&quot;:&quot;mandatory&quot;}}' data-default-effort="3" data-default-severity="mandatory" data-rule="local-storage-00001" onclick="toggleRow('row-cloudreadiness-6', this)" style="cursor:pointer;">
+      <td style="white-space:normal;"><div class="issue-title-cell"><button class="expand-btn" id="btn-row-cloudreadiness-6">&#x276F;</button> File system - Java IO</div></td>
+      <td class="crit-cell"><span class="crit-label"><span class="crit-square crit-square-mandatory"></span>Mandatory</span></td>
+      <td class="sp-cell">3</td>
+    </tr>
+    <tr class="detail-row" id="row-cloudreadiness-6" style="display:none;">
+      <td colspan="3">
+        <div class="detail-content">
+          <div class="file-list">
+            <table><colgroup><col style="width:70%"/><col style="width:30%"/></colgroup>
+            <thead><tr><th>File</th><th>Position</th></tr></thead><tbody>
+            <tr><td><span class="file-path" title="src/main/java/ltd/newbee/mall/controller/common/UploadController.java">src/main/java/ltd/newbee/mall/controller/common/UploadController.java</span></td><td><span class="position">Line 29</span></td></tr>
+            </tbody></table>
+          </div>
+          <div class="explanation-panel">
+            <h4>Explanation</h4>
+            <div><p>When migrating an application that relies on the file system to Azure, it&#x27;s important to consider the limitations of local storage in a cloud environment.<br/> An application running inside a container could lose access to a file in local storage.</p><p> The following recommendations depend on the function of the file in local storage:<br/> * Determine the <strong>storage needs</strong> for your application: Ephemeral storage or persistent storage. Ephemeral storage only persists until the cloud environment is restarted. Persistent storage is required for data that needs to persist across restarts.</p><p> * If persistent storage is needed, consider <strong>mounting Azure File Share</strong> or <strong>using Azure Blob Storage</strong>. Mount Azure file share allows your application to access files via the mount location. Azure blob storage is a scalable object store for data objects, such as text or binary files.</p><p> * <strong>Logging</strong>: Log to standard output and use Azure Monitor to collect and analyze the logs.</p><p> * <strong>Caching</strong>: Use Azure Cache for Redis as a cache backing service.</p><p> * <strong>Configuration</strong>: Store configuration in Azure App Configuration instead of using the file system. Also store configuration settings in environment variables so that they can be updated without code changes.</p></div>
+          </div>
+        </div>
+      </td>
+    </tr>
+    <tr class="issue-row" data-criticality="potential" data-targets='{&quot;azure-aks&quot;:{&quot;effort&quot;:5,&quot;severity&quot;:&quot;potential&quot;},&quot;azure-appservice&quot;:{&quot;effort&quot;:5,&quot;severity&quot;:&quot;potential&quot;},&quot;azure-container-apps&quot;:{&quot;effort&quot;:5,&quot;severity&quot;:&quot;potential&quot;}}' data-default-effort="5" data-default-severity="potential" data-rule="session-00001" onclick="toggleRow('row-cloudreadiness-7', this)" style="cursor:pointer;">
+      <td style="white-space:normal;"><div class="issue-title-cell"><button class="expand-btn" id="btn-row-cloudreadiness-7">&#x276F;</button> HTTP Session data storage</div></td>
+      <td class="crit-cell"><span class="crit-label"><span class="crit-square crit-square-potential"></span>Potential</span></td>
+      <td class="sp-cell">5</td>
+    </tr>
+    <tr class="detail-row" id="row-cloudreadiness-7" style="display:none;">
+      <td colspan="3">
+        <div class="detail-content">
+          <div class="file-list">
+            <table><colgroup><col style="width:70%"/><col style="width:30%"/></colgroup>
+            <thead><tr><th>File</th><th>Position</th></tr></thead><tbody>
+            <tr><td><span class="file-path" title="src/main/java/ltd/newbee/mall/controller/admin/AdminController.java">src/main/java/ltd/newbee/mall/controller/admin/AdminController.java</span></td><td><span class="position">Line 60</span></td></tr>
+            <tr><td><span class="file-path" title="src/main/java/ltd/newbee/mall/controller/admin/AdminController.java">src/main/java/ltd/newbee/mall/controller/admin/AdminController.java</span></td><td><span class="position">Line 64</span></td></tr>
+            <tr><td><span class="file-path" title="src/main/java/ltd/newbee/mall/controller/admin/AdminController.java">src/main/java/ltd/newbee/mall/controller/admin/AdminController.java</span></td><td><span class="position">Line 69</span></td></tr>
+            <tr><td><span class="file-path" title="src/main/java/ltd/newbee/mall/controller/admin/AdminController.java">src/main/java/ltd/newbee/mall/controller/admin/AdminController.java</span></td><td><span class="position">Line 74</span></td></tr>
+            <tr><td><span class="file-path" title="src/main/java/ltd/newbee/mall/controller/admin/AdminController.java">src/main/java/ltd/newbee/mall/controller/admin/AdminController.java</span></td><td><span class="position">Line 75</span></td></tr>
+            <tr><td><span class="file-path" title="src/main/java/ltd/newbee/mall/controller/admin/AdminController.java">src/main/java/ltd/newbee/mall/controller/admin/AdminController.java</span></td><td><span class="position">Line 80</span></td></tr>
+            <tr><td><span class="file-path" title="src/main/java/ltd/newbee/mall/service/impl/NewBeeMallUserServiceImpl.java">src/main/java/ltd/newbee/mall/service/impl/NewBeeMallUserServiceImpl.java</span></td><td><span class="position">Line 70</span></td></tr>
+            <tr><td><span class="file-path" title="src/main/java/ltd/newbee/mall/service/impl/NewBeeMallUserServiceImpl.java">src/main/java/ltd/newbee/mall/service/impl/NewBeeMallUserServiceImpl.java</span></td><td><span class="position">Line 93</span></td></tr>
+            <tr><td><span class="file-path" title="src/main/java/ltd/newbee/mall/controller/admin/AdminController.java">src/main/java/ltd/newbee/mall/controller/admin/AdminController.java</span></td><td><span class="position">Line 22</span></td></tr>
+            <tr><td><span class="file-path" title="src/main/java/ltd/newbee/mall/controller/mall/OrderController.java">src/main/java/ltd/newbee/mall/controller/mall/OrderController.java</span></td><td><span class="position">Line 32</span></td></tr>
+            <tr><td><span class="file-path" title="src/main/java/ltd/newbee/mall/controller/mall/PersonalController.java">src/main/java/ltd/newbee/mall/controller/mall/PersonalController.java</span></td><td><span class="position">Line 26</span></td></tr>
+            <tr><td><span class="file-path" title="src/main/java/ltd/newbee/mall/controller/mall/ShoppingCartController.java">src/main/java/ltd/newbee/mall/controller/mall/ShoppingCartController.java</span></td><td><span class="position">Line 27</span></td></tr>
+            <tr><td><span class="file-path" title="src/main/java/ltd/newbee/mall/service/NewBeeMallUserService.java">src/main/java/ltd/newbee/mall/service/NewBeeMallUserService.java</span></td><td><span class="position">Line 16</span></td></tr>
+            <tr><td><span class="file-path" title="src/main/java/ltd/newbee/mall/service/impl/NewBeeMallUserServiceImpl.java">src/main/java/ltd/newbee/mall/service/impl/NewBeeMallUserServiceImpl.java</span></td><td><span class="position">Line 22</span></td></tr>
+            </tbody></table>
+          </div>
+          <div class="explanation-panel">
+            <h4>Explanation</h4>
+            <div><p>When migrating an application that stores data in an HTTP Session to Azure, it&#x27;s important to consider that the HTTP Session is not a suitable mechanism for maintaining state in a cloud environment due to scaling in and out as load changes.<br/> Instead, you can leverage Azure Cache for Redis to achieve session management in a cloud-native way.</p><p> * Provide <strong>Azure Cache for Redis</strong>: Azure Cache for Redis is a fully managed, highly scalable, and distributed caching service. It allows you to store and manage session data in-memory, providing fast and efficient access.</p><p> * <strong>Configure</strong> Azure Cache for Redis: Configure the cache settings, such as cache size, eviction policies, and access control.</p><p> * <strong>Update session management</strong>: Modify your application&#x27;s session management code to use Azure Cache for Redis. Replace the usage of HTTP Session objects with the appropriate Redis-based session management implementation.</p><p> * <strong>Store and retrieve session data</strong>: Use the Azure Cache for Redis client libraries or connectors within your application to store and retrieve session data. This ensures that session state is securely managed and accessible across multiple instances of your application.</p><p> * <strong>Test and validate</strong>: Test your application to ensure that session state is maintained correctly using Azure Cache for Redis. Verify that session data is stored and retrieved accurately across multiple instances of your application.</p></div>
+          </div>
+        </div>
+      </td>
+    </tr>
+    <tr class="issue-row" data-criticality="potential" data-targets='{&quot;azure-aks&quot;:{&quot;effort&quot;:5,&quot;severity&quot;:&quot;potential&quot;},&quot;azure-appservice&quot;:{&quot;effort&quot;:5,&quot;severity&quot;:&quot;potential&quot;},&quot;azure-container-apps&quot;:{&quot;effort&quot;:5,&quot;severity&quot;:&quot;potential&quot;}}' data-default-effort="5" data-default-severity="potential" data-rule="azure-database-mysql-01000" onclick="toggleRow('row-cloudreadiness-8', this)" style="cursor:pointer;">
+      <td style="white-space:normal;"><div class="issue-title-cell"><button class="expand-btn" id="btn-row-cloudreadiness-8">&#x276F;</button> MySQL database found</div></td>
+      <td class="crit-cell"><span class="crit-label"><span class="crit-square crit-square-potential"></span>Potential</span></td>
+      <td class="sp-cell">5</td>
+    </tr>
+    <tr class="detail-row" id="row-cloudreadiness-8" style="display:none;">
+      <td colspan="3">
+        <div class="detail-content">
+          <div class="file-list">
+            <table><colgroup><col style="width:70%"/><col style="width:30%"/></colgroup>
+            <thead><tr><th>File</th><th>Position</th></tr></thead><tbody>
+            <tr><td><span class="file-path" title="src/main/resources/application.properties">src/main/resources/application.properties</span></td><td><span class="position">Line 10</span></td></tr>
+            </tbody></table>
+          </div>
+          <div class="explanation-panel">
+            <h4>Explanation</h4>
+            <div><p>To migrate a Java application that uses a MySQL database to Azure, you can follow these recommendations:</p><p> * Use a managed <strong>Azure Database for MySQL</strong>: For that create a managed MySQL database in Azure and choose the appropriate pricing tier based on your application&#x27;s requirements for performance, storage, and availability.</p><p> * <strong>Migrate</strong> the existing MySQL database: For that you can use the Azure Database Migration Service (DMS) to perform an online migration with minimal downtime.</p><p> * Update the application&#x27;s <strong>database connection</strong> details: Modify the Java application&#x27;s configuration to point to the newly provisioned Azure Database for MySQL. Update the connection string, hostname, port, username, and password information accordingly.</p><p> * Enable <strong>monitoring and diagnostics</strong>: Utilize Azure Monitor to gain insights into the performance and health of your Java application and the underlying MySQL database. Set up metrics, alerts, and log analytics to proactively identify and resolve issues.</p><p> * Implement <strong>security</strong> measures: Apply security best practices to protect your Java application and the MySQL database. This includes implementing authentication and authorization mechanisms with passwordless connections and leveraging Microsoft Defender for Cloud for threat detection and vulnerability assessments.</p><p> * <strong>Backup</strong> your data: Azure Database for MySQL provides automated backups by default. You can configure the retention period for backups based on your requirements. You can also enable geo-redundant backups, if needed, to enhance data durability and availability.</p></div>
+          </div>
+        </div>
+      </td>
+    </tr>
+    <tr class="issue-row" data-criticality="potential" data-targets='{&quot;azure-aks&quot;:{&quot;effort&quot;:3,&quot;severity&quot;:&quot;potential&quot;},&quot;azure-appservice&quot;:{&quot;effort&quot;:3,&quot;severity&quot;:&quot;potential&quot;},&quot;azure-container-apps&quot;:{&quot;effort&quot;:3,&quot;severity&quot;:&quot;potential&quot;}}' data-default-effort="3" data-default-severity="potential" data-rule="azure-password-01000" onclick="toggleRow('row-cloudreadiness-9', this)" style="cursor:pointer;">
+      <td style="white-space:normal;"><div class="issue-title-cell"><button class="expand-btn" id="btn-row-cloudreadiness-9">&#x276F;</button> Password found in configuration file</div></td>
+      <td class="crit-cell"><span class="crit-label"><span class="crit-square crit-square-potential"></span>Potential</span></td>
+      <td class="sp-cell">3</td>
+    </tr>
+    <tr class="detail-row" id="row-cloudreadiness-9" style="display:none;">
+      <td colspan="3">
+        <div class="detail-content">
+          <div class="file-list">
+            <table><colgroup><col style="width:70%"/><col style="width:30%"/></colgroup>
+            <thead><tr><th>File</th><th>Position</th></tr></thead><tbody>
+            <tr><td><span class="file-path" title="src/main/resources/application.properties">src/main/resources/application.properties</span></td><td><span class="position">Line 12</span></td></tr>
+            </tbody></table>
+          </div>
+          <div class="explanation-panel">
+            <h4>Explanation</h4>
+            <div><p>Using clear passwords in property files is a security risk, as they can be easily compromised if the files are accessed by unauthorized individuals. To enhance the security of your application, it is recommended to employ secure credential management practices.</p><p> * <strong>Azure Key Vault</strong>: Utilize Azure Key Vault to securely store and manage your application&#x27;s passwords and other sensitive credentials. Azure Key Vault provides a centralized and highly secure location for storing secrets, keys, and certificates.</p><p> * <strong>Passwordless connections</strong>: You can provide an additional layer of security and convenience for accessing resources in Azure by eliminating the need for passwords. This way you can reduce the risk of password-related vulnerabilities, such as weak passwords or password theft.</p></div>
+          </div>
+        </div>
+      </td>
+    </tr>
+    <tr class="issue-row" data-criticality="potential" data-targets='{&quot;azure-aks&quot;:{&quot;effort&quot;:1,&quot;severity&quot;:&quot;potential&quot;},&quot;azure-appservice&quot;:{&quot;effort&quot;:1,&quot;severity&quot;:&quot;potential&quot;},&quot;azure-container-apps&quot;:{&quot;effort&quot;:1,&quot;severity&quot;:&quot;potential&quot;}}' data-default-effort="1" data-default-severity="potential" data-rule="spring-boot-to-azure-port-01000" onclick="toggleRow('row-cloudreadiness-10', this)" style="cursor:pointer;">
+      <td style="white-space:normal;"><div class="issue-title-cell"><button class="expand-btn" id="btn-row-cloudreadiness-10">&#x276F;</button> Server port configuration found</div></td>
+      <td class="crit-cell"><span class="crit-label"><span class="crit-square crit-square-potential"></span>Potential</span></td>
+      <td class="sp-cell">1</td>
+    </tr>
+    <tr class="detail-row" id="row-cloudreadiness-10" style="display:none;">
+      <td colspan="3">
+        <div class="detail-content">
+          <div class="file-list">
+            <table><colgroup><col style="width:70%"/><col style="width:30%"/></colgroup>
+            <thead><tr><th>File</th><th>Position</th></tr></thead><tbody>
+            <tr><td><span class="file-path" title="src/main/resources/application.properties">src/main/resources/application.properties</span></td><td><span class="position">Line 6</span></td></tr>
+            </tbody></table>
+          </div>
+          <div class="explanation-panel">
+            <h4>Explanation</h4>
+            <div><p>The application is setting the server port. To migrate a Java application that sets the server port to Azure Container Apps:</p><p> <em> </em>*Azure Container Apps allows you to expose port according to your Azure Container Apps resource configuration. For instance, a Spring Boot application listens to port of 8080 by default, but it can be set with server.port or environment variable SERVER_PORT as you need.</p></div>
+          </div>
+        </div>
+      </td>
+    </tr>
+    <tr class="issue-row" data-criticality="potential" data-targets='{&quot;azure-aks&quot;:{&quot;effort&quot;:3,&quot;severity&quot;:&quot;potential&quot;},&quot;azure-appservice&quot;:{&quot;effort&quot;:3,&quot;severity&quot;:&quot;potential&quot;},&quot;azure-container-apps&quot;:{&quot;effort&quot;:3,&quot;severity&quot;:&quot;potential&quot;}}' data-default-effort="3" data-default-severity="potential" data-rule="cra-insecure-random-math-02000" onclick="toggleRow('row-cloudreadiness-11', this)" style="cursor:pointer;">
+      <td style="white-space:normal;"><div class="issue-title-cell"><button class="expand-btn" id="btn-row-cloudreadiness-11">&#x276F;</button> CRA: Use of Math.random() which is not cryptographically secure</div></td>
+      <td class="crit-cell"><span class="crit-label"><span class="crit-square crit-square-potential"></span>Potential</span></td>
+      <td class="sp-cell">3</td>
+    </tr>
+    <tr class="detail-row" id="row-cloudreadiness-11" style="display:none;">
+      <td colspan="3">
+        <div class="detail-content">
+          <div class="file-list">
+            <table><colgroup><col style="width:70%"/><col style="width:30%"/></colgroup>
+            <thead><tr><th>File</th><th>Position</th></tr></thead><tbody>
+            <tr><td><span class="file-path" title="src/main/java/ltd/newbee/mall/util/NumberUtil.java">src/main/java/ltd/newbee/mall/util/NumberUtil.java</span></td><td><span class="position">Line 38</span></td></tr>
+            </tbody></table>
+          </div>
+          <div class="explanation-panel">
+            <h4>Explanation</h4>
+            <div><p><strong>EU Cyber Resilience Act (Annex I, Part I, Section 2(c))</strong> requires the use of <strong>state of the art</strong> cryptographic mechanisms.</p><p><code>Math.random()</code> internally uses <code>java.util.Random</code> which is a <strong>predictable</strong> pseudo-random number generator. If this value is used for any security-sensitive purpose (tokens, session IDs, nonces, encryption keys), it must be replaced with a cryptographically secure alternative.</p><p><strong>Recommended actions:</strong></p><ul><li>Replace <code>Math.random()</code> with <code>SecureRandom.nextDouble()</code> for security-relevant use cases.</li><li>Use <code>SecureRandom.nextBytes()</code> for generating random byte arrays.</li><li>Evaluate whether the use of <code>Math.random()</code> in this context has security implications.</li></ul></div>
+          </div>
+        </div>
+      </td>
+    </tr>
+    </tbody>
+  </table>
+</div>
+<div class="issue-section" data-domain="java-upgrade">
+  <h2>Java Upgrade</h2>
+  <table class="issue-table">
+    <colgroup><col class="col-issue"/><col class="col-criticality"/><col class="col-storypoint"/></colgroup>
+    <thead><tr><th>Issue Category</th><th>Criticality</th><th>Story Point</th></tr></thead>
+    <tbody>
+    <tr class="issue-row" data-criticality="mandatory" data-targets='{&quot;azure-aks&quot;:{&quot;effort&quot;:2,&quot;severity&quot;:&quot;mandatory&quot;},&quot;azure-appservice&quot;:{&quot;effort&quot;:2,&quot;severity&quot;:&quot;mandatory&quot;},&quot;azure-container-apps&quot;:{&quot;effort&quot;:2,&quot;severity&quot;:&quot;mandatory&quot;}}' data-default-effort="2" data-default-severity="mandatory" data-rule="java-11-deprecate-javaee-00001" onclick="toggleRow('row-javaupgrade-0', this)" style="cursor:pointer;">
+      <td style="white-space:normal;"><div class="issue-title-cell"><button class="expand-btn" id="btn-row-javaupgrade-0">&#x276F;</button> The java.annotation (Common Annotations) module has been removed from OpenJDK 11</div></td>
+      <td class="crit-cell"><span class="crit-label"><span class="crit-square crit-square-mandatory"></span>Mandatory</span></td>
+      <td class="sp-cell">2</td>
+    </tr>
+    <tr class="detail-row" id="row-javaupgrade-0" style="display:none;">
+      <td colspan="3">
+        <div class="detail-content">
+          <div class="file-list">
+            <table><colgroup><col style="width:70%"/><col style="width:30%"/></colgroup>
+            <thead><tr><th>File</th><th>Position</th></tr></thead><tbody>
+            <tr><td><span class="file-path" title="src/main/java/ltd/newbee/mall/controller/admin/AdminController.java">src/main/java/ltd/newbee/mall/controller/admin/AdminController.java</span></td><td><span class="position">Line 20</span></td></tr>
+            <tr><td><span class="file-path" title="src/main/java/ltd/newbee/mall/controller/admin/NewBeeMallCarouselController.java">src/main/java/ltd/newbee/mall/controller/admin/NewBeeMallCarouselController.java</span></td><td><span class="position">Line 22</span></td></tr>
+            <tr><td><span class="file-path" title="src/main/java/ltd/newbee/mall/controller/admin/NewBeeMallGoodsCategoryController.java">src/main/java/ltd/newbee/mall/controller/admin/NewBeeMallGoodsCategoryController.java</span></td><td><span class="position">Line 25</span></td></tr>
+            <tr><td><span class="file-path" title="src/main/java/ltd/newbee/mall/controller/admin/NewBeeMallGoodsController.java">src/main/java/ltd/newbee/mall/controller/admin/NewBeeMallGoodsController.java</span></td><td><span class="position">Line 28</span></td></tr>
+            <tr><td><span class="file-path" title="src/main/java/ltd/newbee/mall/controller/admin/NewBeeMallGoodsIndexConfigController.java">src/main/java/ltd/newbee/mall/controller/admin/NewBeeMallGoodsIndexConfigController.java</span></td><td><span class="position">Line 24</span></td></tr>
+            <tr><td><span class="file-path" title="src/main/java/ltd/newbee/mall/controller/admin/NewBeeMallOrderController.java">src/main/java/ltd/newbee/mall/controller/admin/NewBeeMallOrderController.java</span></td><td><span class="position">Line 24</span></td></tr>
+            <tr><td><span class="file-path" title="src/main/java/ltd/newbee/mall/controller/admin/NewBeeMallUserController.java">src/main/java/ltd/newbee/mall/controller/admin/NewBeeMallUserController.java</span></td><td><span class="position">Line 20</span></td></tr>
+            <tr><td><span class="file-path" title="src/main/java/ltd/newbee/mall/controller/mall/GoodsController.java">src/main/java/ltd/newbee/mall/controller/mall/GoodsController.java</span></td><td><span class="position">Line 28</span></td></tr>
+            <tr><td><span class="file-path" title="src/main/java/ltd/newbee/mall/controller/mall/IndexController.java">src/main/java/ltd/newbee/mall/controller/mall/IndexController.java</span></td><td><span class="position">Line 24</span></td></tr>
+            <tr><td><span class="file-path" title="src/main/java/ltd/newbee/mall/controller/mall/OrderController.java">src/main/java/ltd/newbee/mall/controller/mall/OrderController.java</span></td><td><span class="position">Line 30</span></td></tr>
+            <tr><td><span class="file-path" title="src/main/java/ltd/newbee/mall/controller/mall/PersonalController.java">src/main/java/ltd/newbee/mall/controller/mall/PersonalController.java</span></td><td><span class="position">Line 24</span></td></tr>
+            <tr><td><span class="file-path" title="src/main/java/ltd/newbee/mall/controller/mall/ShoppingCartController.java">src/main/java/ltd/newbee/mall/controller/mall/ShoppingCartController.java</span></td><td><span class="position">Line 25</span></td></tr>
+            <tr><td><span class="file-path" title="src/main/java/ltd/newbee/mall/service/impl/AdminUserServiceImpl.java">src/main/java/ltd/newbee/mall/service/impl/AdminUserServiceImpl.java</span></td><td><span class="position">Line 17</span></td></tr>
+            </tbody></table>
+          </div>
+          <div class="explanation-panel">
+            <h4>Explanation</h4>
+            <div><p>Add the <code>jakarta.annotation</code> dependency to your application. E.g. update maven <code>pom.xml</code>.</p><p> <code>&lt;groupId&gt;jakarta.annotation&lt;/groupId&gt;</code></p><p> <code>&lt;artifactId&gt;jakarta.annotation-api&lt;/artifactId&gt;</code></p></div>
+          </div>
+        </div>
+      </td>
+    </tr>
+    <tr class="issue-row" data-criticality="mandatory" data-targets='{&quot;azure-aks&quot;:{&quot;effort&quot;:8,&quot;severity&quot;:&quot;mandatory&quot;},&quot;azure-appservice&quot;:{&quot;effort&quot;:8,&quot;severity&quot;:&quot;mandatory&quot;},&quot;azure-container-apps&quot;:{&quot;effort&quot;:8,&quot;severity&quot;:&quot;mandatory&quot;}}' data-default-effort="8" data-default-severity="mandatory" data-rule="azure-java-version-01000" onclick="toggleRow('row-javaupgrade-1', this)" style="cursor:pointer;">
+      <td style="white-space:normal;"><div class="issue-title-cell"><button class="expand-btn" id="btn-row-javaupgrade-1">&#x276F;</button> Java Version Has Reached the End of Support</div></td>
+      <td class="crit-cell"><span class="crit-label"><span class="crit-square crit-square-mandatory"></span>Mandatory</span></td>
+      <td class="sp-cell">8</td>
+    </tr>
+    <tr class="detail-row" id="row-javaupgrade-1" style="display:none;">
+      <td colspan="3">
+        <div class="detail-content">
+          <div class="file-list">
+            <table><colgroup><col style="width:70%"/><col style="width:30%"/></colgroup>
+            <thead><tr><th>File</th><th>Position</th></tr></thead><tbody>
+            <tr><td><span class="file-path" title="pom.xml">pom.xml</span></td><td><span class="position">Line 26</span></td></tr>
+            </tbody></table>
+          </div>
+          <div class="explanation-panel">
+            <h4>Explanation</h4>
+            <div><p>The application is using a Java version that has reached the end of support. It is strongly recommended to plan and execute a migration strategy to upgrade your application to a supported Java version.<br/>Supported Java versions receive long-term support (LTS) from the Java community, including bug fixes and updates. Migrating to a supported version provides you with a stable and well-maintained platform for your application.</p></div>
+          </div>
+        </div>
+      </td>
+    </tr>
+    </tbody>
+  </table>
+</div>
+</div><!-- #tab-issues -->
+<div id="tab-arch" class="tab-panel">
+  <div class="fact-content"><h1 id="architecture-diagram">Architecture Diagram</h1>
+<p>This document summarizes the high-level architecture and internal component relationships for newbee-mall.</p>
+<h2 id="application-architecture">Application Architecture</h2>
+<div class="mermaid">
+flowchart TD
+    subgraph Client["Client Layer"]
+        Browser["Web Browser"]
+        AdminUI["Admin UI"]
+        MallUI["Mall UI"]
+    end
+
+    subgraph App["Application Layer - Spring Boot 2.7.5"]
+        MVC["Spring MVC + Thymeleaf"]
+        Interceptor["Login and Cart Interceptors"]
+        Biz["Business Services"]
+        MyBatis["MyBatis Mapper Layer"]
+    end
+
+    subgraph Data["Data Layer"]
+        MySQL[("MySQL newbee_mall_db")]
+        FileStore[("Local File Upload Directory")]
+    end
+
+    subgraph External["External Integrations"]
+        BannerCDN["OSS Image Links"]
+    end
+
+    Browser -->|"HTTP requests"| MVC
+    AdminUI -->|"admin operations"| MVC
+    MallUI -->|"shopping workflows"| MVC
+    MVC -->|"session checks"| Interceptor
+    MVC -->|"delegates"| Biz
+    Biz -->|"CRUD queries"| MyBatis
+    MyBatis -->|"SQL"| MySQL
+    MVC -->|"upload files"| FileStore
+    MVC -->|"renders referenced assets"| BannerCDN
+</div>
+<h3 id="technology-stack-summary">Technology Stack Summary</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Layer</th><th>Technology</th><th>Version</th><th>Purpose</th>
+</tr></thead><tbody>
+<tr><td>Presentation</td><td>Spring MVC, Thymeleaf</td><td>Spring Boot managed (2.7.5 BOM)</td><td>Server-side page rendering and request handling</td></tr>
+<tr><td>Business</td><td>Spring Service components</td><td>Spring Boot managed</td><td>Order, cart, user, goods, and admin logic</td></tr>
+<tr><td>Data Access</td><td>MyBatis Spring Boot Starter</td><td>2.2.2</td><td>Mapper-based persistence</td></tr>
+<tr><td>Database</td><td>MySQL</td><td>runtime driver managed by Spring Boot BOM</td><td>Transactional data storage</td></tr>
+<tr><td>Runtime</td><td>Java</td><td>1.8</td><td>Application runtime</td></tr>
+</tbody></table></div>
+<h3 id="data-storage-external-services">Data Storage & External Services</h3>
+<p>The application stores business data in a single MySQL database (<code>newbee_mall_db</code>) and stores uploaded images/files in a local filesystem directory mapped under <code>/upload/<strong></code> and <code>/goods-img/</strong></code>. It also references external image URLs in seeded carousel/config data.</p>
+<h3 id="key-architectural-decisions">Key Architectural Decisions</h3>
+<ul>
+<li>Monolithic Spring Boot web application with both storefront and admin capabilities in one deployable unit.</li>
+<li>Layered architecture using Controllers -> Services -> MyBatis Mapper interfaces/XML.</li>
+<li>Session-based authentication and authorization checks implemented with MVC interceptors.</li>
+</ul>
+<h2 id="component-relationships">Component Relationships</h2>
+<div class="mermaid">
+flowchart LR
+    subgraph Presentation["Presentation"]
+        AdminCtrl["Admin Controllers"]
+        MallCtrl["Mall Controllers"]
+        CommonCtrl["Common Controllers"]
+    end
+
+    subgraph Business["Business Logic"]
+        AdminSvc["AdminUserServiceImpl"]
+        UserSvc["NewBeeMallUserServiceImpl"]
+        GoodsSvc["NewBeeMallGoodsServiceImpl"]
+        CartSvc["NewBeeMallShoppingCartServiceImpl"]
+        OrderSvc["NewBeeMallOrderServiceImpl"]
+        CategorySvc["NewBeeMallCategoryServiceImpl"]
+        IndexCfgSvc["NewBeeMallIndexConfigServiceImpl"]
+        CarouselSvc["NewBeeMallCarouselServiceImpl"]
+    end
+
+    subgraph DataAccess["Data Access"]
+        AdminMapper["AdminUserMapper"]
+        UserMapper["MallUserMapper"]
+        GoodsMapper["NewBeeMallGoodsMapper"]
+        CartMapper["NewBeeMallShoppingCartItemMapper"]
+        OrderMapper["NewBeeMallOrderMapper"]
+        OrderItemMapper["NewBeeMallOrderItemMapper"]
+        CategoryMapper["GoodsCategoryMapper"]
+        IndexCfgMapper["IndexConfigMapper"]
+        CarouselMapper["CarouselMapper"]
+    end
+
+    subgraph Infra["Infrastructure"]
+        AdminInterceptor["AdminLoginInterceptor"]
+        MallInterceptor["NewBeeMallLoginInterceptor"]
+        CartInterceptor["NewBeeMallCartNumberInterceptor"]
+        ExceptionHandler["NewBeeMallExceptionHandler"]
+    end
+
+    AdminCtrl -->|"delegates"| AdminSvc
+    AdminCtrl -->|"delegates"| GoodsSvc
+    AdminCtrl -->|"delegates"| CategorySvc
+    AdminCtrl -->|"delegates"| OrderSvc
+    AdminCtrl -->|"delegates"| UserSvc
+    AdminCtrl -->|"delegates"| IndexCfgSvc
+    AdminCtrl -->|"delegates"| CarouselSvc
+    MallCtrl -->|"delegates"| UserSvc
+    MallCtrl -->|"delegates"| GoodsSvc
+    MallCtrl -->|"delegates"| CartSvc
+    MallCtrl -->|"delegates"| OrderSvc
+    CommonCtrl -->|"uploads and utility"| GoodsSvc
+
+    AdminSvc -->|"queries"| AdminMapper
+    UserSvc -->|"queries"| UserMapper
+    GoodsSvc -->|"queries"| GoodsMapper
+    CartSvc -->|"queries"| CartMapper
+    CartSvc -->|"lookups"| GoodsMapper
+    OrderSvc -->|"queries"| OrderMapper
+    OrderSvc -->|"queries"| OrderItemMapper
+    OrderSvc -->|"queries"| CartMapper
+    OrderSvc -->|"updates stock"| GoodsMapper
+    CategorySvc -->|"queries"| CategoryMapper
+    IndexCfgSvc -->|"queries"| IndexCfgMapper
+    CarouselSvc -->|"queries"| CarouselMapper
+
+    AdminInterceptor -.->|"guards"| AdminCtrl
+    MallInterceptor -.->|"guards"| MallCtrl
+    CartInterceptor -.->|"injects cart count"| MallCtrl
+    ExceptionHandler -.->|"handles exceptions"| Presentation
+</div>
+<h3 id="component-inventory">Component Inventory</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Component</th><th>Layer</th><th>Type</th><th>Responsibility</th>
+</tr></thead><tbody>
+<tr><td><code>AdminController</code> + admin resource controllers</td><td>Presentation</td><td>MVC Controller</td><td>Back-office login and operational management</td></tr>
+<tr><td><code>PersonalController</code>, <code>GoodsController</code>, <code>ShoppingCartController</code>, <code>OrderController</code>, <code>IndexController</code></td><td>Presentation</td><td>MVC Controller</td><td>Customer login, browsing, cart, and order flows</td></tr>
+<tr><td><code>NewBeeMallOrderServiceImpl</code></td><td>Business</td><td>Service</td><td>Order lifecycle, stock updates, payment status transitions</td></tr>
+<tr><td><code>NewBeeMallShoppingCartServiceImpl</code></td><td>Business</td><td>Service</td><td>Cart add/update/delete and cart snapshot composition</td></tr>
+<tr><td><code>NewBeeMallGoodsServiceImpl</code></td><td>Business</td><td>Service</td><td>Product listing, search, and admin product management</td></tr>
+<tr><td><code>NewBeeMallUserServiceImpl</code></td><td>Business</td><td>Service</td><td>Mall user registration, login, profile updates</td></tr>
+<tr><td><code>AdminUserServiceImpl</code></td><td>Business</td><td>Service</td><td>Admin identity management</td></tr>
+<tr><td><code>*Mapper</code> interfaces + MyBatis XML</td><td>Data Access</td><td>Mapper</td><td>SQL execution and persistence mapping</td></tr>
+<tr><td><code>AdminLoginInterceptor</code>, <code>NewBeeMallLoginInterceptor</code>, <code>NewBeeMallCartNumberInterceptor</code></td><td>Infrastructure</td><td>Interceptor</td><td>Session and page access control, cart count enrichment</td></tr>
+<tr><td><code>NewBeeMallExceptionHandler</code></td><td>Infrastructure</td><td>Advice</td><td>Global exception mapping for JSON/view responses</td></tr>
+</tbody></table></div></div>
+</div>
+<div id="tab-api" class="tab-panel">
+  <div class="fact-content"><h1 id="api-service-communication-contracts">API & Service Communication Contracts</h1>
+<p>The application exposes a broad MVC/API surface for storefront and admin operations, primarily over synchronous HTTP request/response flows in a single deployable service.</p>
+<h2 id="service-catalog">Service Catalog</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Service</th><th>Port</th><th>Category</th><th>Purpose</th>
+</tr></thead><tbody>
+<tr><td><code>newbee-mall</code></td><td>28089</td><td>Business</td><td>Monolithic Spring Boot service that serves admin and mall pages/APIs</td></tr>
+</tbody></table></div>
+<h2 id="api-endpoints-inventory">API Endpoints Inventory</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Service</th><th>Method</th><th>Path</th><th>Request Type</th><th>Response Type</th>
+</tr></thead><tbody>
+<tr><td>newbee-mall</td><td>GET</td><td><code>/admin/login</code></td><td>Query only</td><td>Thymeleaf view</td></tr>
+<tr><td>newbee-mall</td><td>POST</td><td><code>/admin/login</code></td><td>form fields: <code>userName,password,verifyCode</code></td><td>redirect/view</td></tr>
+<tr><td>newbee-mall</td><td>GET</td><td><code>/admin/orders</code></td><td>query pagination</td><td>Thymeleaf view</td></tr>
+<tr><td>newbee-mall</td><td>GET</td><td><code>/admin/orders/list</code></td><td>query pagination</td><td>JSON page result</td></tr>
+<tr><td>newbee-mall</td><td>POST</td><td><code>/admin/orders/checkDone</code></td><td>body: order id array</td><td>JSON result</td></tr>
+<tr><td>newbee-mall</td><td>POST</td><td><code>/admin/orders/checkOut</code></td><td>body: order id array</td><td>JSON result</td></tr>
+<tr><td>newbee-mall</td><td>POST</td><td><code>/admin/orders/close</code></td><td>body: order id array</td><td>JSON result</td></tr>
+<tr><td>newbee-mall</td><td>GET</td><td><code>/search</code></td><td>query params (<code>keyword</code>, paging, filters)</td><td>Thymeleaf view</td></tr>
+<tr><td>newbee-mall</td><td>GET</td><td><code>/goods/detail/{goodsId}</code></td><td>path: <code>goodsId</code></td><td>Thymeleaf view</td></tr>
+<tr><td>newbee-mall</td><td>GET</td><td><code>/shop-cart</code></td><td>session user context</td><td>Thymeleaf view</td></tr>
+<tr><td>newbee-mall</td><td>POST</td><td><code>/shop-cart</code></td><td>JSON cart item DTO</td><td>JSON result</td></tr>
+<tr><td>newbee-mall</td><td>PUT</td><td><code>/shop-cart</code></td><td>JSON cart item DTO</td><td>JSON result</td></tr>
+<tr><td>newbee-mall</td><td>DELETE</td><td><code>/shop-cart/{newBeeMallShoppingCartItemId}</code></td><td>path: cart item id</td><td>JSON result</td></tr>
+<tr><td>newbee-mall</td><td>GET</td><td><code>/saveOrder</code></td><td>session user context</td><td>redirect to order detail</td></tr>
+<tr><td>newbee-mall</td><td>GET</td><td><code>/orders</code></td><td>query pagination + session user</td><td>Thymeleaf view</td></tr>
+<tr><td>newbee-mall</td><td>GET</td><td><code>/orders/{orderNo}</code></td><td>path: <code>orderNo</code></td><td>Thymeleaf view</td></tr>
+<tr><td>newbee-mall</td><td>PUT</td><td><code>/orders/{orderNo}/cancel</code></td><td>path: <code>orderNo</code></td><td>JSON result</td></tr>
+<tr><td>newbee-mall</td><td>PUT</td><td><code>/orders/{orderNo}/finish</code></td><td>path: <code>orderNo</code></td><td>JSON result</td></tr>
+<tr><td>newbee-mall</td><td>GET</td><td><code>/selectPayType</code></td><td>query: <code>orderNo</code></td><td>Thymeleaf view</td></tr>
+<tr><td>newbee-mall</td><td>GET</td><td><code>/payPage</code></td><td>query: <code>orderNo,payType</code></td><td>Thymeleaf view</td></tr>
+<tr><td>newbee-mall</td><td>GET</td><td><code>/paySuccess</code></td><td>query: <code>orderNo,payType</code></td><td>JSON result</td></tr>
+<tr><td>newbee-mall</td><td>POST</td><td><code>/login</code></td><td>form login credentials + captcha</td><td>JSON result</td></tr>
+<tr><td>newbee-mall</td><td>POST</td><td><code>/register</code></td><td>form registration fields + captcha</td><td>JSON result</td></tr>
+<tr><td>newbee-mall</td><td>POST</td><td><code>/personal/updateInfo</code></td><td>form profile fields</td><td>JSON result</td></tr>
+<tr><td>newbee-mall</td><td>GET</td><td><code>/common/kaptcha</code></td><td>none</td><td>image stream</td></tr>
+<tr><td>newbee-mall</td><td>POST</td><td><code>/admin/upload/file</code></td><td>multipart image</td><td>JSON URL</td></tr>
+</tbody></table></div>
+<h2 id="management-observability-endpoints">Management & Observability Endpoints</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Service</th><th>Endpoint</th><th>Custom Metrics (if any)</th>
+</tr></thead><tbody>
+<tr><td>newbee-mall</td><td>Not explicitly configured (<code>/actuator/*</code> not found)</td><td>None identified</td></tr>
+</tbody></table></div>
+<h2 id="dtos-contracts">DTOs & Contracts</h2>
+<p>Service-level contract models include <code>AdminUser</code>, <code>MallUser</code>, <code>NewBeeMallGoods</code>, <code>GoodsCategory</code>, <code>NewBeeMallShoppingCartItem</code>, <code>NewBeeMallOrder</code>, <code>NewBeeMallOrderItem</code>, and request/response VOs like <code>NewBeeMallUserVO</code>, <code>NewBeeMallShoppingCartItemVO</code>, <code>NewBeeMallOrderDetailVO</code>, <code>NewBeeMallOrderItemVO</code>, and <code>StockNumDTO</code>. These are mutable POJO-style models serialized via Jackson (Spring Boot defaults). No dedicated gateway aggregation DTO layer, protobuf schemas, or GraphQL schemas were identified. Validation failures are generally surfaced as business errors with corresponding result payloads/status semantics.</p>
+<h2 id="communication-patterns">Communication Patterns</h2>
+<p>Communication is predominantly synchronous and in-process: Controllers call Services, then MyBatis Mappers execute SQL against MySQL. No asynchronous broker patterns (Kafka/RabbitMQ), service discovery, API gateway, or client-side load-balancing patterns were detected. Resilience policies like circuit breakers/retries/timeouts are not explicitly configured. Startup dependency relevant to API availability is simple: application startup requires reachable MySQL due to datasource configuration. Security posture at API contract level is session-based access control through MVC interceptors for admin and protected mall paths; TLS/auth proxy configuration is not defined in repository-level runtime config.</p>
+<h2 id="service-technology-matrix">Service Technology Matrix</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Service</th><th>Web</th><th>Data Access</th><th>Discovery</th><th>Gateway</th><th>Actuator</th><th>Cache</th><th>Metrics</th>
+</tr></thead><tbody>
+<tr><td>newbee-mall</td><td>Spring MVC + Thymeleaf</td><td>MyBatis + MySQL</td><td>none</td><td>none</td><td>no explicit config</td><td>none detected</td><td>none detected</td></tr>
+</tbody></table></div>
+<h2 id="service-communication-sequence">Service Communication Sequence</h2>
+<div class="mermaid">
+sequenceDiagram
+    participant User as "Mall User"
+    participant OrderCtrl as "OrderController"
+    participant CartSvc as "NewBeeMallShoppingCartService"
+    participant OrderSvc as "NewBeeMallOrderService"
+    participant GoodsMapper as "NewBeeMallGoodsMapper"
+    participant OrderMapper as "NewBeeMallOrderMapper"
+    participant DB as "MySQL"
+
+    User->>OrderCtrl: GET /saveOrder
+    OrderCtrl->>CartSvc: getMyShoppingCartItems(userId)
+    CartSvc->>DB: query cart items and goods
+    DB-->>CartSvc: cart item list
+    CartSvc-->>OrderCtrl: shopping cart snapshot
+
+    OrderCtrl->>OrderSvc: saveOrder(user, cartItems)
+    OrderSvc->>GoodsMapper: selectByPrimaryKeys(goodsIds)
+    GoodsMapper->>DB: load goods and stock
+    DB-->>GoodsMapper: goods rows
+    GoodsMapper-->>OrderSvc: goods snapshot
+
+    alt Stock and sell status valid
+        OrderSvc->>OrderMapper: insert order
+        OrderMapper->>DB: write order
+        DB-->>OrderMapper: orderId
+        OrderSvc->>DB: insert order items and update stock
+        DB-->>OrderSvc: success
+        OrderSvc-->>OrderCtrl: orderNo
+        OrderCtrl-->>User: redirect /orders/{orderNo}
+    else Validation or stock failure
+        OrderSvc-->>OrderCtrl: business error
+        OrderCtrl-->>User: error response/view
+    end
+</div></div>
+</div>
+<div id="tab-config" class="tab-panel">
+  <div class="fact-content"><h1 id="configuration-externalized-settings-inventory">Configuration & Externalized Settings Inventory</h1>
+<p>This inventory summarizes configuration sources and externalized settings for newbee-mall, including runtime properties, profile behavior, and sensitive configuration handling.</p>
+<h2 id="configuration-sources">Configuration Sources</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Source</th><th>Type</th><th>Path/Location</th><th>Notes</th>
+</tr></thead><tbody>
+<tr><td>Spring application properties</td><td>file</td><td><code>src/main/resources/application.properties</code></td><td>Primary runtime configuration source</td></tr>
+<tr><td>MyBatis mapper config</td><td>property reference</td><td><code>mybatis.mapper-locations</code> in <code>application.properties</code></td><td>Points to XML SQL mappings</td></tr>
+<tr><td>Maven build descriptor</td><td>file</td><td><code>pom.xml</code></td><td>Dependency and build plugin management</td></tr>
+<tr><td>Schema bootstrap SQL</td><td>file</td><td><code>src/main/resources/newbee_mall_schema.sql</code></td><td>DB schema and seed data script</td></tr>
+</tbody></table></div>
+<h2 id="build-profiles">Build Profiles</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Profile</th><th>Activation</th><th>Purpose</th><th>Key Dependencies/Plugins</th>
+</tr></thead><tbody>
+<tr><td>Default Maven build</td><td>Standard <code>mvn</code> lifecycle</td><td>Compile/package Spring Boot jar</td><td><code>spring-boot-maven-plugin</code></td></tr>
+</tbody></table></div>
+<p>No custom Maven <code><profiles></code> were detected.</p>
+<h2 id="runtime-profiles">Runtime Profiles</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Profile</th><th>Activation Method</th><th>Config Files</th><th>Key Overrides</th>
+</tr></thead><tbody>
+<tr><td>default</td><td>implicit (no <code>spring.profiles.active</code>)</td><td><code>application.properties</code></td><td>datasource, server port, hikari pool settings</td></tr>
+</tbody></table></div>
+<p>No profile-specific files (<code>application-dev.properties</code>, etc.) were detected.</p>
+<h2 id="properties-inventory">Properties Inventory</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Property Key</th><th>Default</th><th>Profiles</th><th>Source</th>
+</tr></thead><tbody>
+<tr><td><code>server.port</code></td><td><code>28089</code></td><td>default</td><td><code>application.properties</code></td></tr>
+<tr><td><code>spring.thymeleaf.cache</code></td><td><code>false</code></td><td>default</td><td><code>application.properties</code></td></tr>
+<tr><td><code>spring.datasource.name</code></td><td><code>newbee-mall-datasource</code></td><td>default</td><td><code>application.properties</code></td></tr>
+<tr><td><code>spring.datasource.driverClassName</code></td><td><code>com.mysql.cj.jdbc.Driver</code></td><td>default</td><td><code>application.properties</code></td></tr>
+<tr><td><code>spring.datasource.url</code></td><td>JDBC URL to localhost MySQL</td><td>default</td><td><code>application.properties</code></td></tr>
+<tr><td><code>spring.datasource.username</code></td><td><code>root</code></td><td>default</td><td><code>application.properties</code></td></tr>
+<tr><td><code>spring.datasource.password</code></td><td><code>[MASKED]</code></td><td>default</td><td><code>application.properties</code></td></tr>
+<tr><td><code>spring.datasource.hikari.minimum-idle</code></td><td><code>5</code></td><td>default</td><td><code>application.properties</code></td></tr>
+<tr><td><code>spring.datasource.hikari.maximum-pool-size</code></td><td><code>15</code></td><td>default</td><td><code>application.properties</code></td></tr>
+<tr><td><code>spring.datasource.hikari.auto-commit</code></td><td><code>true</code></td><td>default</td><td><code>application.properties</code></td></tr>
+<tr><td><code>spring.datasource.hikari.idle-timeout</code></td><td><code>10000</code></td><td>default</td><td><code>application.properties</code></td></tr>
+<tr><td><code>spring.datasource.hikari.pool-name</code></td><td><code>hikariCP</code></td><td>default</td><td><code>application.properties</code></td></tr>
+<tr><td><code>spring.datasource.hikari.max-lifetime</code></td><td><code>30000</code></td><td>default</td><td><code>application.properties</code></td></tr>
+<tr><td><code>spring.datasource.hikari.connection-timeout</code></td><td><code>30000</code></td><td>default</td><td><code>application.properties</code></td></tr>
+<tr><td><code>spring.datasource.hikari.connection-test-query</code></td><td><code>SELECT 1</code></td><td>default</td><td><code>application.properties</code></td></tr>
+<tr><td><code>mybatis.mapper-locations</code></td><td><code>classpath:mapper/*Mapper.xml</code></td><td>default</td><td><code>application.properties</code></td></tr>
+</tbody></table></div>
+<h2 id="startup-parameters-resource-requirements">Startup Parameters & Resource Requirements</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Service</th><th>JVM/Runtime Options</th><th>Memory</th><th>Instance Count</th>
+</tr></thead><tbody>
+<tr><td>newbee-mall</td><td>Not specified in repository launch scripts/config</td><td>Not specified</td><td>Not specified</td></tr>
+</tbody></table></div>
+<p>No explicit <code>-Xms/-Xmx</code>, container limits, or scaling settings were found in this repository.</p>
+<h2 id="startup-dependency-chain">Startup Dependency Chain</h2>
+<ol>
+<li>MySQL database must be reachable at configured JDBC endpoint.</li>
+<li><code>newbee-mall</code> starts, initializes datasource and MyBatis mappers.</li>
+<li>Web endpoints become available once Spring Boot context initialization completes.</li>
+</ol>
+<p>No explicit wait-for scripts, readiness probes, or orchestrator dependency definitions were detected.</p>
+<h2 id="secrets-sensitive-configuration">Secrets & Sensitive Configuration</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Secret Reference</th><th>Type</th><th>Storage (masked)</th>
+</tr></thead><tbody>
+<tr><td><code>spring.datasource.password</code></td><td>Database credential</td><td><code>application.properties</code> value masked</td></tr>
+<tr><td><code>spring.datasource.username</code></td><td>Database account</td><td>plaintext config value</td></tr>
+</tbody></table></div>
+<h3 id="secrets-provisioning-workflow">Secrets Provisioning Workflow</h3>
+<p>In the current repository, secrets are file-based and loaded directly from <code>application.properties</code> at startup. No external secret manager integration (Vault/KeyVault/Secrets Manager) or managed identity flow was identified. Service startup binds datasource credentials immediately for DB connectivity.</p>
+<h2 id="feature-flags">Feature Flags</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Flag Name</th><th>Default</th><th>Controlled By</th>
+</tr></thead><tbody>
+<tr><td>No explicit feature flags detected</td><td>N/A</td><td>N/A</td></tr>
+</tbody></table></div>
+<p>Conditional feature frameworks (<code>@ConditionalOnProperty</code>, LaunchDarkly, Unleash, etc.) were not found.</p>
+<h2 id="framework-runtime-versions">Framework & Runtime Versions</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Component</th><th>Version</th><th>Source</th>
+</tr></thead><tbody>
+<tr><td>Spring Boot</td><td>2.7.5</td><td><code>pom.xml</code> parent</td></tr>
+<tr><td>Java target</td><td>1.8</td><td><code>pom.xml</code> property</td></tr>
+<tr><td>MyBatis Spring Boot Starter</td><td>2.2.2</td><td><code>pom.xml</code> property/dependency</td></tr>
+<tr><td>hutool-captcha</td><td>5.8.7</td><td><code>pom.xml</code> property/dependency</td></tr>
+<tr><td>Maven plugin</td><td>spring-boot-maven-plugin (managed)</td><td><code>pom.xml</code></td></tr>
+<tr><td>MySQL JDBC driver</td><td>managed by Spring Boot BOM</td><td><code>pom.xml</code> dependency</td></tr>
+</tbody></table></div></div>
+</div>
+<div id="tab-workflows" class="tab-panel">
+  <div class="fact-content"><h1 id="core-business-workflows">Core Business Workflows</h1>
+<p>newbee-mall supports end-to-end online shopping workflows for customers and operational workflows for administrators. Core processes include account access, catalog discovery, shopping cart management, and order lifecycle handling.</p>
+<h2 id="domain-entities">Domain Entities</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Entity</th><th>Service / Bounded Context</th><th>Description</th><th>Key Relationships</th>
+</tr></thead><tbody>
+<tr><td>MallUser</td><td>User Account</td><td>Customer account and profile context</td><td>Places orders, owns cart items</td></tr>
+<tr><td>AdminUser</td><td>Admin Operations</td><td>Back-office operator identity</td><td>Maintains goods, categories, carousel, index config</td></tr>
+<tr><td>NewBeeMallGoods</td><td>Catalog</td><td>Sellable product metadata and inventory</td><td>Belongs to category, referenced in cart/order/config</td></tr>
+<tr><td>GoodsCategory</td><td>Catalog Taxonomy</td><td>Multi-level category hierarchy</td><td>Parent-child hierarchy, groups goods</td></tr>
+<tr><td>NewBeeMallShoppingCartItem</td><td>Shopping Cart</td><td>User-selected items before checkout</td><td>References MallUser and Goods</td></tr>
+<tr><td>NewBeeMallOrder</td><td>Order Management</td><td>Order header and lifecycle state</td><td>Belongs to MallUser, contains order items</td></tr>
+<tr><td>NewBeeMallOrderItem</td><td>Order Management</td><td>Immutable item snapshot at purchase</td><td>References order and goods</td></tr>
+<tr><td>Carousel</td><td>Homepage Content</td><td>Marketing banner configuration</td><td>Managed by admins</td></tr>
+<tr><td>IndexConfig</td><td>Homepage Content</td><td>Curated product placement configuration</td><td>References goods</td></tr>
+</tbody></table></div>
+<h2 id="service-to-domain-mapping">Service-to-Domain Mapping</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Service</th><th>Domain Context</th><th>Owned Entities</th><th>External Dependencies</th>
+</tr></thead><tbody>
+<tr><td><code>NewBeeMallUserService</code></td><td>User Account</td><td>MallUser</td><td><code>MallUserMapper</code>, HTTP session</td></tr>
+<tr><td><code>AdminUserService</code></td><td>Admin Identity</td><td>AdminUser</td><td><code>AdminUserMapper</code>, captcha session state</td></tr>
+<tr><td><code>NewBeeMallGoodsService</code></td><td>Catalog</td><td>NewBeeMallGoods, GoodsCategory</td><td><code>NewBeeMallGoodsMapper</code>, <code>GoodsCategoryMapper</code>, <code>IndexConfigMapper</code></td></tr>
+<tr><td><code>NewBeeMallShoppingCartService</code></td><td>Shopping Cart</td><td>NewBeeMallShoppingCartItem</td><td><code>NewBeeMallShoppingCartItemMapper</code>, <code>NewBeeMallGoodsMapper</code></td></tr>
+<tr><td><code>NewBeeMallOrderService</code></td><td>Order Management</td><td>NewBeeMallOrder, NewBeeMallOrderItem</td><td>order/cart/goods mappers, transactional DB operations</td></tr>
+<tr><td><code>NewBeeMallCarouselService</code></td><td>Homepage Content</td><td>Carousel</td><td><code>CarouselMapper</code></td></tr>
+<tr><td><code>NewBeeMallIndexConfigService</code></td><td>Homepage Content</td><td>IndexConfig</td><td><code>IndexConfigMapper</code>, <code>NewBeeMallGoodsMapper</code></td></tr>
+</tbody></table></div>
+<h2 id="primary-workflows">Primary Workflows</h2>
+<h3 id="workflow-1-customer-checkout-and-order-creation">Workflow 1: Customer checkout and order creation</h3>
+<ol>
+<li>Authenticated user opens cart and reviews selected goods.</li>
+<li>User triggers order creation (<code>/saveOrder</code>).</li>
+<li>System validates address availability, cart non-empty state, goods selling status, and stock sufficiency.</li>
+<li>Transactional order creation occurs: delete cart items, deduct stock, create order header, create order items.</li>
+<li>User is redirected to order details and can continue pay/cancel/finish actions based on status checks.</li>
+</ol>
+<p>Business rules involved: stock cannot be negative, off-shelf goods cannot be ordered, order total must be positive, and user can only operate on own orders.</p>
+<h3 id="workflow-2-admin-order-processing-lifecycle">Workflow 2: Admin order processing lifecycle</h3>
+<ol>
+<li>Admin queries orders in backend management pages.</li>
+<li>Admin executes state transitions (<code>checkDone</code>, <code>checkOut</code>, <code>close</code>) in batches.</li>
+<li>Each transition validates current order state and deletion flags.</li>
+<li>Close operation recovers inventory quantities.</li>
+</ol>
+<p>Business rules involved: only eligible statuses may transition; invalid orders are aggregated and returned as user-visible error messages.</p>
+<h3 id="workflow-3-user-account-access-and-profile-maintenance">Workflow 3: User account access and profile maintenance</h3>
+<ol>
+<li>User/admin login requires credentials and captcha verification.</li>
+<li>Session attributes are created on successful login.</li>
+<li>Profile updates sanitize text input before persistence.</li>
+<li>Locked users are denied login.</li>
+</ol>
+<h2 id="cross-service-data-flows">Cross-Service Data Flows</h2>
+<p>This repository implements a single deployable service, so cross-domain composition happens inside one process. Order flows combine cart data, goods stock data, and user profile/address data before persistence. Admin management flows aggregate category/goods/index configuration and order summaries for operational pages. When validations fail (e.g., stock shortage, ownership mismatch, invalid status), the flow degrades to business error responses instead of state mutation.</p>
+<h2 id="business-workflow-sequence">Business Workflow Sequence</h2>
+<div class="mermaid">
+sequenceDiagram
+    participant User as "Customer"
+    participant OrderCtrl as "OrderController"
+    participant CartSvc as "ShoppingCartService"
+    participant OrderSvc as "OrderService"
+    participant Goods as "Goods Domain"
+    participant Order as "Order Domain"
+    participant DB as "MySQL"
+
+    User->>OrderCtrl: Submit order from cart
+    OrderCtrl->>CartSvc: Load current cart snapshot
+    CartSvc->>DB: Query user cart and goods
+    DB-->>CartSvc: Cart items
+    CartSvc-->>OrderCtrl: Cart snapshot
+
+    OrderCtrl->>OrderSvc: Create order request
+    OrderSvc->>Goods: Validate on-shelf and stock rules
+    Goods->>DB: Read goods and stock
+    DB-->>Goods: Goods records
+
+    alt Validation passes
+        OrderSvc->>Order: Create order and line snapshots
+        Order->>DB: Insert order and order items
+        OrderSvc->>DB: Deduct stock and clear cart
+        DB-->>OrderSvc: Commit success
+        OrderSvc-->>OrderCtrl: Return orderNo
+        OrderCtrl-->>User: Redirect to order detail page
+    else Validation fails
+        Note over OrderSvc: Return business error and do not mutate data
+        OrderSvc-->>OrderCtrl: Error message
+        OrderCtrl-->>User: Display failure response/page
+    end
+</div>
+<h2 id="business-rules-decision-logic">Business Rules & Decision Logic</h2>
+<ul>
+<li><strong>Validation rules</strong>: Captcha required for login/registration; non-empty credentials; non-empty address for checkout; cart cannot be empty; per-item cart limits and total cart limits.</li>
+<li><strong>Decision logic</strong>: Order and admin actions branch on current order status; payment page selection branches on <code>payType</code>; profile update applies sanitized values only when present.</li>
+<li><strong>State transitions</strong>: Order statuses move through pre-pay, paid, done, out-stock, finished, or closed states with strict transition checks.</li>
+<li><strong>Data integrity rules</strong>: Order creation and close/recovery operations are transactional; stock update failures abort order creation.</li>
+<li><strong>Authorization constraints</strong>: Session-based interceptors and per-order userId checks enforce owner-only operations for customer order actions.</li>
+</ul></div>
+</div>
+<div id="tab-deps" class="tab-panel">
+  <div class="fact-content"><h1 id="dependency-map">Dependency Map</h1>
+<p>This document summarizes declared external dependencies for newbee-mall from <code>pom.xml</code> (excluding test dependencies from the main map). The project has 6 primary declared dependencies plus 1 test-scoped dependency.</p>
+<h2 id="dependencies">Dependencies</h2>
+<div class="mermaid">
+flowchart LR
+    App["newbee-mall"]
+    BOM["spring-boot-starter-parent 2.7.5"]
+
+    subgraph Web["Web Frameworks"]
+        SpringWeb["spring-boot-starter-web managed"]
+        Thymeleaf["spring-boot-starter-thymeleaf managed"]
+    end
+
+    subgraph DB["Database / ORM"]
+        MyBatis["mybatis-spring-boot-starter 2.2.2"]
+        MySQL["mysql-connector-java managed runtime"]
+    end
+
+    subgraph Sec["Security"]
+        SessionCore["spring-session-core managed"]
+    end
+
+    subgraph Util["Utilities"]
+        HutoolCaptcha["hutool-captcha 5.8.7"]
+    end
+
+    App -->|"web"| Web
+    App -->|"persistence"| DB
+    App -->|"session"| Sec
+    App -->|"utilities"| Util
+
+    BOM -.->|"manages"| SpringWeb
+    BOM -.->|"manages"| Thymeleaf
+    BOM -.->|"manages"| MySQL
+    BOM -.->|"manages"| SessionCore
+</div>
+<h3 id="dependency-summary">Dependency Summary</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Category</th><th>Count</th><th>Key Libraries</th><th>Notes</th>
+</tr></thead><tbody>
+<tr><td>Web Frameworks</td><td>2</td><td>spring-boot-starter-web, spring-boot-starter-thymeleaf</td><td>MVC + server-side rendering</td></tr>
+<tr><td>Database / ORM</td><td>2</td><td>mybatis-spring-boot-starter, mysql-connector-java</td><td>Mapper-based persistence to MySQL</td></tr>
+<tr><td>Security</td><td>1</td><td>spring-session-core</td><td>Session infrastructure used by login flows</td></tr>
+<tr><td>Utilities</td><td>1</td><td>hutool-captcha</td><td>Captcha generation/verification</td></tr>
+</tbody></table></div>
+<h3 id="version-compatibility-risks">Version & Compatibility Risks</h3>
+<p>The project targets Java 8 while using Spring Boot 2.7.5, which is stable but on an older major line compared with current Spring Boot generations. Future modernization may require dependency and API upgrades for newer JDK targets and long-term support alignment.</p>
+<h3 id="notable-observations">Notable Observations</h3>
+<ul>
+<li>Spring Boot parent BOM centrally manages versions for several starters and runtime components.</li>
+<li>MyBatis is used instead of JPA/Hibernate, so SQL and mapper XML compatibility is critical for upgrades.</li>
+<li>No explicit observability, messaging, caching, or circuit-breaker libraries are declared.</li>
+<li>Security dependency footprint is minimal and centered on session handling.</li>
+</ul>
+<h2 id="test-dependencies">Test Dependencies</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Framework</th><th>Version</th><th>Notes</th>
+</tr></thead><tbody>
+<tr><td>spring-boot-starter-test</td><td>managed by Spring Boot 2.7.5 BOM</td><td>Provides JUnit and Spring test utilities</td></tr>
+</tbody></table></div>
+<p>Total test-scope dependencies: 1</p>
+<p>Test infrastructure is basic and Spring Boot standard. No specialized integration-test libraries (e.g., Testcontainers) are declared in this module.</p></div>
+</div>
+<div id="tab-data" class="tab-panel">
+  <div class="fact-content"><h1 id="data-architecture-persistence-layer">Data Architecture & Persistence Layer</h1>
+<p>The data layer is centered on a single MySQL schema with MyBatis mapper interfaces/XML for persistence. Core entities cover users, catalog, cart, orders, and homepage content configuration.</p>
+<h2 id="database-configuration">Database Configuration</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Service/Module</th><th>DB Type</th><th>Profile</th><th>Driver</th><th>Connection</th><th>Migration Tool</th>
+</tr></thead><tbody>
+<tr><td>newbee-mall</td><td>MySQL</td><td>default</td><td><code>com.mysql.cj.jdbc.Driver</code></td><td>JDBC URL to <code>localhost:3306/newbee_mall_db</code> with HikariCP</td><td>SQL bootstrap script (<code>newbee_mall_schema.sql</code>)</td></tr>
+</tbody></table></div>
+<h2 id="data-ownership-per-service">Data Ownership per Service</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Service</th><th>Tables Owned</th><th>ORM Framework</th><th>Caching</th><th>Notes</th>
+</tr></thead><tbody>
+<tr><td>newbee-mall</td><td><code>tb_newbee_mall_admin_user</code>, <code>tb_newbee_mall_user</code>, <code>tb_newbee_mall_goods_info</code>, <code>tb_newbee_mall_goods_category</code>, <code>tb_newbee_mall_shopping_cart_item</code>, <code>tb_newbee_mall_order</code>, <code>tb_newbee_mall_order_item</code>, <code>tb_newbee_mall_carousel</code>, <code>tb_newbee_mall_index_config</code></td><td>MyBatis</td><td>none detected</td><td>Single shared schema for admin + mall domains</td></tr>
+</tbody></table></div>
+<h2 id="entity-model">Entity Model</h2>
+<div class="mermaid">
+erDiagram
+    MallUser ||--o{ NewBeeMallOrder : "places"
+    MallUser ||--o{ NewBeeMallShoppingCartItem : "owns"
+    NewBeeMallGoods ||--o{ NewBeeMallShoppingCartItem : "added as"
+    NewBeeMallOrder ||--o{ NewBeeMallOrderItem : "contains"
+    NewBeeMallGoods ||--o{ NewBeeMallOrderItem : "snapshotted in"
+    GoodsCategory ||--o{ NewBeeMallGoods : "categorizes"
+    NewBeeMallGoods ||--o{ IndexConfig : "referenced by"
+    AdminUser ||--o{ Carousel : "maintains"
+    AdminUser ||--o{ GoodsCategory : "maintains"
+    AdminUser ||--o{ NewBeeMallGoods : "maintains"
+    AdminUser ||--o{ IndexConfig : "maintains"
+
+    AdminUser {
+        int adminUserId PK
+        string loginUserName
+        string loginPassword
+        string nickName
+        int locked
+    }
+    MallUser {
+        long userId PK
+        string loginName
+        string passwordMd5
+        string nickName
+        string address
+        int lockedFlag
+    }
+    GoodsCategory {
+        long categoryId PK
+        int categoryLevel
+        long parentId
+        string categoryName
+        int categoryRank
+        int createUser
+    }
+    NewBeeMallGoods {
+        long goodsId PK
+        string goodsName
+        long goodsCategoryId FK
+        int sellingPrice
+        int stockNum
+        int goodsSellStatus
+        int createUser
+    }
+    NewBeeMallShoppingCartItem {
+        long cartItemId PK
+        long userId FK
+        long goodsId FK
+        int goodsCount
+        int isDeleted
+    }
+    NewBeeMallOrder {
+        long orderId PK
+        string orderNo
+        long userId FK
+        int totalPrice
+        int payStatus
+        int orderStatus
+        string userAddress
+    }
+    NewBeeMallOrderItem {
+        long orderItemId PK
+        long orderId FK
+        long goodsId FK
+        string goodsName
+        int sellingPrice
+        int goodsCount
+    }
+    Carousel {
+        int carouselId PK
+        string carouselUrl
+        string redirectUrl
+        int carouselRank
+        int createUser
+    }
+    IndexConfig {
+        long configId PK
+        string configName
+        int configType
+        long goodsId FK
+        string redirectUrl
+        int createUser
+    }
+</div>
+<h2 id="key-repository-methods">Key Repository Methods</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Service</th><th>Repository</th><th>Notable Methods</th><th>Purpose</th>
+</tr></thead><tbody>
+<tr><td>newbee-mall</td><td><code>NewBeeMallOrderMapper</code></td><td><code>findNewBeeMallOrderList</code>, <code>selectByOrderNo</code>, <code>checkDone</code>, <code>checkOut</code>, <code>closeOrder</code></td><td>Order list/query and status transitions</td></tr>
+<tr><td>newbee-mall</td><td><code>NewBeeMallOrderItemMapper</code></td><td><code>selectByOrderId</code>, <code>selectByOrderIds</code>, <code>insertBatch</code></td><td>Load and persist order line snapshots</td></tr>
+<tr><td>newbee-mall</td><td><code>NewBeeMallGoodsMapper</code></td><td><code>findNewBeeMallGoodsListBySearch</code>, <code>updateStockNum</code>, <code>recoverStockNum</code>, <code>batchUpdateSellStatus</code></td><td>Product search and inventory management</td></tr>
+<tr><td>newbee-mall</td><td><code>NewBeeMallShoppingCartItemMapper</code></td><td><code>selectByUserIdAndGoodsId</code>, <code>selectByUserId</code>, <code>deleteBatch</code></td><td>User cart retrieval and cleanup</td></tr>
+<tr><td>newbee-mall</td><td><code>MallUserMapper</code></td><td><code>selectByLoginNameAndPasswd</code>, <code>lockUserBatch</code></td><td>User authentication lookup and admin lock</td></tr>
+<tr><td>newbee-mall</td><td><code>GoodsCategoryMapper</code></td><td><code>selectByLevelAndParentIdsAndNumber</code>, <code>batchInsert</code></td><td>Category hierarchy retrieval and maintenance</td></tr>
+<tr><td>newbee-mall</td><td><code>IndexConfigMapper</code>, <code>CarouselMapper</code>, <code>AdminUserMapper</code></td><td>list/save/update/info methods</td><td>Homepage config and admin account persistence</td></tr>
+</tbody></table></div>
+<h2 id="caching-strategy">Caching Strategy</h2>
+<p>No explicit application cache provider or cache annotations (<code>@Cacheable</code>, Redis, Caffeine, EhCache) were identified. The system appears to rely on direct database queries and HTTP session state.</p>
+<h2 id="data-ownership-boundaries">Data Ownership Boundaries</h2>
+<p>The repository implements a single-service topology with one shared MySQL schema. All bounded contexts (catalog, user, cart, order, homepage config, admin) read/write through the same datastore via mapper interfaces. There is no cross-service API/data replication pattern or CQRS split; read and write operations are managed transactionally inside service methods (notably order creation and status updates).</p>
+<h3 id="data-classification-sensitivity">Data Classification & Sensitivity</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Entity</th><th>Sensitive Fields</th><th>Classification (PII/PHI/PCI/None)</th><th>Controls in Place</th>
+</tr></thead><tbody>
+<tr><td><code>MallUser</code></td><td><code>loginName</code>, <code>nickName</code>, <code>address</code>, <code>passwordMd5</code></td><td>PII</td><td>Password stored as MD5 hash; no field-level encryption/masking config identified</td></tr>
+<tr><td><code>AdminUser</code></td><td><code>loginUserName</code>, <code>loginPassword</code>, <code>nickName</code></td><td>PII</td><td>Password stored as hashed string in seed data; no explicit masking/encryption-at-rest controls in repo</td></tr>
+<tr><td><code>NewBeeMallOrder</code></td><td><code>userAddress</code></td><td>PII</td><td>No explicit masking or encryption controls identified</td></tr>
+<tr><td><code>NewBeeMallOrderItem</code>, <code>NewBeeMallGoods</code>, <code>GoodsCategory</code>, <code>Carousel</code>, <code>IndexConfig</code>, <code>NewBeeMallShoppingCartItem</code></td><td>business/product metadata</td><td>None or low sensitivity</td><td>Standard DB persistence only</td></tr>
+</tbody></table></div>
+<p>No PHI or PCI data fields were explicitly detected in the entity model.</p></div>
+</div>
+<p class="footer">Your feedback is invaluable &mdash; <a href="https://aka.ms/ghcp-appmod/feedback">Share feedback</a></p>
+<script>
+function toggleRow(rowId, triggerRow) {
+  var detail = document.getElementById(rowId);
+  var btn = document.getElementById('btn-' + rowId);
+  if (!detail) return;
+  var visible = detail.style.display !== 'none';
+  detail.style.display = visible ? 'none' : 'table-row';
+  if (btn) btn.classList.toggle('open', !visible);
+}
+(function() {
+  var nav = document.querySelector('.tab-nav');
+  if (!nav) return;
+  nav.addEventListener('click', function(e) {
+    var btn = e.target.closest('.tab-btn');
+    if (!btn) return;
+    var targetId = btn.getAttribute('data-tab');
+    document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
+    document.querySelectorAll('.tab-panel').forEach(function(p) { p.classList.remove('active'); });
+    btn.classList.add('active');
+    var panel = document.getElementById(targetId);
+    if (panel) {
+      panel.classList.add('active');
+      if (window.__mermaidReady) { window.__renderMermaidIn(panel); }
+    }
+  });
+})();
+
+// ── Diagram lightbox ────────────────────────────────────────
+(function() {
+  var lightbox = document.getElementById('diagram-lightbox');
+  var inner = document.getElementById('diagram-lightbox-inner');
+  var closeBtn = document.getElementById('diagram-lightbox-close');
+  if (!lightbox || !inner || !closeBtn) return;
+
+  var scale = 1;
+  var translateX = 0;
+  var translateY = 0;
+  var isDragging = false;
+  var dragStartX = 0;
+  var dragStartY = 0;
+
+  function applyTransform() {
+    var svg = inner.querySelector('svg');
+    if (svg) {
+      svg.style.transform = 'translate(' + translateX + 'px, ' + translateY + 'px) scale(' + scale + ')';
+      svg.style.transformOrigin = 'center center';
+      svg.style.transition = 'none';
+    }
+  }
+
+  function resetTransform() {
+    scale = 1; translateX = 0; translateY = 0;
+    applyTransform();
+  }
+
+  function openLightbox(svgEl) {
+    inner.innerHTML = svgEl.outerHTML;
+    var injected = inner.querySelector('svg');
+    if (injected) {
+      injected.removeAttribute('width');
+      injected.removeAttribute('height');
+      injected.style.cursor = 'grab';
+    }
+    resetTransform();
+    lightbox.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeLightbox() {
+    lightbox.classList.remove('open');
+    inner.innerHTML = '';
+    document.body.style.overflow = '';
+    resetTransform();
+  }
+
+  inner.addEventListener('wheel', function(e) {
+    e.preventDefault();
+    var delta = e.deltaY > 0 ? 0.9 : 1.1;
+    scale = Math.min(Math.max(scale * delta, 0.3), 8);
+    applyTransform();
+  }, { passive: false });
+
+  inner.addEventListener('mousedown', function(e) {
+    if (e.button !== 0) return;
+    isDragging = true;
+    dragStartX = e.clientX - translateX;
+    dragStartY = e.clientY - translateY;
+    var svg = inner.querySelector('svg');
+    if (svg) { svg.style.cursor = 'grabbing'; }
+    e.preventDefault();
+  });
+
+  document.addEventListener('mousemove', function(e) {
+    if (!isDragging) return;
+    translateX = e.clientX - dragStartX;
+    translateY = e.clientY - dragStartY;
+    applyTransform();
+  });
+
+  document.addEventListener('mouseup', function() {
+    if (!isDragging) return;
+    isDragging = false;
+    var svg = inner.querySelector('svg');
+    if (svg) { svg.style.cursor = 'grab'; }
+  });
+
+  inner.addEventListener('dblclick', function() { resetTransform(); });
+
+  document.addEventListener('click', function(e) {
+    var card = e.target.closest('.mermaid');
+    if (!card) return;
+    if (e.target.closest('.diagram-lightbox-close')) return;
+    var svg = card.querySelector('svg');
+    if (svg) { openLightbox(svg); }
+  });
+
+  closeBtn.addEventListener('click', closeLightbox);
+
+  lightbox.addEventListener('click', function(e) {
+    if (e.target === lightbox) { closeLightbox(); }
+  });
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') { closeLightbox(); }
+  });
+})();
+
+var _currentTarget = '';
+
+function toggleMultiSelect(id) {
+  var el = document.getElementById(id);
+  if (!el) return;
+  document.querySelectorAll('.multi-select.open').forEach(function(ms) { if (ms.id !== id) ms.classList.remove('open'); });
+  el.classList.toggle('open');
+}
+
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.multi-select')) {
+    document.querySelectorAll('.multi-select.open').forEach(function(ms) { ms.classList.remove('open'); });
+  }
+});
+
+function getMultiSelectValues(msId) {
+  var el = document.getElementById(msId);
+  if (!el) return [];
+  var checked = el.querySelectorAll('input[type=checkbox]:checked');
+  var vals = [];
+  for (var i = 0; i < checked.length; i++) vals.push(checked[i].value);
+  return vals;
+}
+
+function onMultiSelectChange(msId, label) {
+  var el = document.getElementById(msId);
+  if (!el) return;
+  var vals = getMultiSelectValues(msId);
+  var total = el.querySelectorAll('input[type=checkbox]').length;
+  var btn = el.querySelector('.multi-select-btn');
+  if (btn) {
+    btn.textContent = vals.length > 0 && vals.length < total ? label + ' (' + vals.length + ')' : label;
+  }
+  applyFilters();
+}
+
+function applyFilters() {
+  var selectedDomains = getMultiSelectValues('domain-ms');
+  var selectedCrits = getMultiSelectValues('criticality-ms');
+
+  var sections = document.querySelectorAll('.issue-section');
+  for (var i = 0; i < sections.length; i++) {
+    var domain = sections[i].getAttribute('data-domain');
+    sections[i].style.display = (selectedDomains.length === 0 || selectedDomains.indexOf(domain) >= 0) ? '' : 'none';
+  }
+
+  var rows = document.querySelectorAll('.issue-row');
+  for (var i = 0; i < rows.length; i++) {
+    var row = rows[i];
+    var section = row.closest('.issue-section');
+    if (section && section.style.display === 'none') {
+      row.style.display = 'none';
+      var next = row.nextElementSibling;
+      if (next && next.classList.contains('detail-row')) next.style.display = 'none';
+      continue;
+    }
+
+    var show = true;
+    if (_currentTarget && row.hasAttribute('data-targets')) {
+      var targetsStr = row.getAttribute('data-targets');
+      if (targetsStr && targetsStr !== '{}') {
+        try {
+          var targets = JSON.parse(targetsStr);
+          if (Object.keys(targets).length > 0 && !targets[_currentTarget]) {
+            show = false;
+          }
+        } catch(e) {}
+      }
+    }
+
+    if (show && selectedCrits.length > 0) {
+      var crit = row.getAttribute('data-criticality');
+      if (selectedCrits.indexOf(crit) < 0) show = false;
+    }
+
+    row.style.display = show ? '' : 'none';
+    var nextRow = row.nextElementSibling;
+    if (nextRow && nextRow.classList.contains('detail-row')) {
+      if (!show) nextRow.style.display = 'none';
+    }
+  }
+}
+
+function clearAllFilters() {
+  document.querySelectorAll('.multi-select input[type=checkbox]').forEach(function(cb) { cb.checked = false; });
+  var domainBtn = document.querySelector('#domain-ms .multi-select-btn');
+  if (domainBtn) domainBtn.textContent = 'Domain';
+  var critBtn = document.querySelector('#criticality-ms .multi-select-btn');
+  if (critBtn) critBtn.textContent = 'Criticality';
+  applyFilters();
+}
+
+function onTargetChange(targetId) {
+  _currentTarget = targetId;
+  var rows = document.querySelectorAll('.issue-row[data-targets]');
+  var totalEffort = 0;
+  var domainCrits = {};
+
+  for (var i = 0; i < rows.length; i++) {
+    var row = rows[i];
+    var targets = JSON.parse(row.getAttribute('data-targets'));
+    var section = row.closest('.issue-section');
+    var domain = section ? section.getAttribute('data-domain') : '';
+
+    if (!targets || Object.keys(targets).length === 0) {
+      var sp = parseFloat(row.querySelector('.sp-cell').textContent) || 0;
+      totalEffort += sp;
+      if (!domainCrits[domain]) domainCrits[domain] = {mandatory:0,potential:0,optional:0};
+      var crit = row.getAttribute('data-criticality') || 'optional';
+      domainCrits[domain][crit] = (domainCrits[domain][crit] || 0) + 1;
+      continue;
+    }
+
+    var override = targets[targetId];
+    if (!override) {
+      continue;
+    }
+
+    var newSeverity = (override.severity || row.getAttribute('data-default-severity') || '').toLowerCase();
+    row.setAttribute('data-criticality', newSeverity);
+    var critCell = row.querySelector('.crit-cell');
+    if (critCell) {
+      var critText = newSeverity === 'mandatory' ? 'Mandatory' : newSeverity === 'potential' ? 'Potential' : 'Optional';
+      var cssClass = newSeverity === 'mandatory' ? 'crit-square-mandatory' : newSeverity === 'potential' ? 'crit-square-potential' : 'crit-square-optional';
+      critCell.innerHTML = '<span class="crit-label"><span class="crit-square ' + cssClass + '"></span>' + critText + '</span>';
+    }
+
+    var newEffort = override.effort !== undefined ? override.effort : parseFloat(row.getAttribute('data-default-effort')) || 0;
+    var spCell = row.querySelector('.sp-cell');
+    if (spCell) spCell.textContent = newEffort;
+    totalEffort += newEffort;
+
+    if (!domainCrits[domain]) domainCrits[domain] = {mandatory:0,potential:0,optional:0};
+    domainCrits[domain][newSeverity] = (domainCrits[domain][newSeverity] || 0) + 1;
+  }
+
+  var secSection = document.querySelector('.issue-section[data-domain="security"]');
+  if (secSection) {
+    var secRows = secSection.querySelectorAll('.issue-row');
+    for (var j = 0; j < secRows.length; j++) {
+      if (!secRows[j].hasAttribute('data-targets') || secRows[j].getAttribute('data-targets') === '') {
+        var sp = parseFloat(secRows[j].querySelector('.sp-cell').textContent) || 0;
+        totalEffort += sp;
+        if (!domainCrits['security']) domainCrits['security'] = {mandatory:0,potential:0,optional:0};
+        var sc = secRows[j].getAttribute('data-criticality') || 'optional';
+        domainCrits['security'][sc] = (domainCrits['security'][sc] || 0) + 1;
+      }
+    }
+  }
+
+  var label = totalEffort < 20 ? 'S' : totalEffort < 50 ? 'M' : totalEffort < 100 ? 'L' : 'XL';
+  var effortEl = document.getElementById('effort-display');
+  if (effortEl) effortEl.textContent = label + ' (total story points: ' + totalEffort + ')';
+
+  updateDonuts(domainCrits);
+  applyFilters();
+}
+
+function updateDonuts(domainCrits) {
+  var container = document.getElementById('donut-container');
+  if (!container) return;
+  container.innerHTML = '';
+  var domainNames = {'cloud-readiness':'Cloud Readiness','java-upgrade':'Java Upgrade','dotnet-upgrade':'DotNET Upgrade','security':'Security'};
+  var domainOrder = ['cloud-readiness','java-upgrade','dotnet-upgrade','security'];
+  for (var d = 0; d < domainOrder.length; d++) {
+    var key = domainOrder[d];
+    var c = domainCrits[key];
+    if (!c || (c.mandatory + c.potential + c.optional) === 0) continue;
+    var total = c.mandatory + c.potential + c.optional;
+    var div = document.createElement('div');
+    div.className = 'domain-summary-item';
+    div.innerHTML = buildDonutSvg(c.mandatory, c.potential, c.optional) +
+      '<h3>' + domainNames[key] + '</h3>' +
+      '<div class="count">' + total + ' issue' + (total !== 1 ? 's' : '') + '</div>';
+    container.appendChild(div);
+  }
+}
+
+function buildDonutSvg(m, p, o) {
+  var total = m + p + o;
+  if (total === 0) return '<svg viewBox="0 0 100 100" width="100" height="100" style="display:block;margin:0 auto;"><circle cx="50" cy="50" r="35" fill="none" stroke="#d0d7de" stroke-width="15" opacity="0.5"/></svg>';
+  var r = 35, circ = 2 * Math.PI * r, offset = 0;
+  var svg = '<svg viewBox="0 0 100 100" width="100" height="100" style="display:block;margin:0 auto;transform:rotate(-90deg);">';
+  var segs = [{c:m,color:'var(--color-mandatory)'},{c:p,color:'var(--color-potential)'},{c:o,color:'var(--color-optional)'}];
+  for (var i = 0; i < segs.length; i++) {
+    if (segs[i].c === 0) continue;
+    var segLen = (segs[i].c / total) * circ;
+    var gap = total > segs[i].c ? 1.5 : 0;
+    var drawLen = Math.max(segLen - gap, 0.5);
+    svg += '<circle cx="50" cy="50" r="' + r + '" fill="none" stroke="' + segs[i].color + '" stroke-width="15" stroke-dasharray="' + drawLen.toFixed(2) + ' ' + circ.toFixed(2) + '" stroke-dashoffset="' + (-offset).toFixed(2) + '"/>';
+    offset += segLen;
+  }
+  svg += '</svg>';
+  return svg;
+}
+</script>
+<script>document.addEventListener('DOMContentLoaded', function() { onTargetChange('azure-aks'); });</script>
+</div></body></html>
